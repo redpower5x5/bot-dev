@@ -1,0 +1,48 @@
+# English translations for PROJECT.
+# Copyright (C) 2023 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2023-12-31 15:40+0300\n"
+"PO-Revision-Date: 2023-12-31 15:40+0300\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.13.1\n"
+
+#: src/bot/handlers/common.py:30
+msgid "Hello , {username}!"
+msgstr "Hello, {username}! I am ITAM Bot which can help you navigate in IT at Misis community"
+
+#: src/bot/handlers/coworking.py:20 src/bot/handlers/coworking.py:25
+msgid "coworking menu text"
+msgstr "Main coworking menu (coworking - Г511) with"
+
+#: src/bot/keyboards/menu.py:11
+msgid "Coworking inline keyboard button"
+msgstr "💼 Coworking"
+
+#: src/bot/keyboards/menu.py:16
+msgid "Settings inline keyboard button"
+msgstr "⚙️ Profile settings"
+
+#: src/bot/keyboards/menu.py:26
+msgid "Coworking info inline keyboard button"
+msgstr "ℹ️  info"
+
+#: src/bot/keyboards/menu.py:30
+msgid "Coworking status inline keyboard button"
+msgstr "❔ status"
+
+#: src/bot/keyboards/menu.py:37
+msgid "Coworking admin menu inline keyboard button"
+msgstr "🦺 change status"
+
