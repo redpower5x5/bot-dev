@@ -3,7 +3,7 @@ from aiogram import BaseMiddleware
 from aiogram import types
 from controllers.coworking import CoworkingController
 
-# TODO: change repositories package structure of imports
+
 from repositories.users import UserRepositoryBase
 from repositories.coworking import CoworkingRepositoryBase
 
@@ -28,11 +28,6 @@ class CoworkingMiddleware(BaseMiddleware):
     ) -> tp.Any:
 
         data["coworking_controller"] = self.controller
-        tg_user: tp.Optional[types.User] = data.get("event_from_user")
-
-        if tg_user:
-            print("tg_user", tg_user.id, self.user_repo.get_user(tg_user.id))
-            data["user"] = self.user_repo.get_user(tg_user.id)
 
         result = await handler(event, data)
 

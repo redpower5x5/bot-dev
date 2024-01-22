@@ -1,61 +1,70 @@
-# TODO: add previus steps into callbackdata and add back button
-
+import asyncio
 import typing as tp
-from aiogram import types, Router, F
+from aiogram import Bot, types, Router, F
+
+from aiogram.filters import and_f
 from aiogram.utils.i18n import gettext as _
+
 from controllers.coworking import CoworkingController
 from repositories.coworking.models import CoworkingStatus
 
 from repositories.users.models import TelegramUser
 
+
 from ..keyboards.menu import (
     coworking_menu_keyboard,
-    coworking_status_keyboard,
-    coworking_close_duration,
+    MainMenuCallback,
+    CoworkingMenuCallback,
 )
+from ..keyboards.coworking import coworking_subscription, SubscriptionCallback
+from ..keyboards.coworking_admin import (
+    CoworkingStatusCallback,
+    coworking_admin_keyboard,
+)
+from utils import get_user_mention
 
 router: tp.Final[Router] = Router(name="coworking")
 
-# TODO: change callback data into classes with data
-@router.callback_query(F.data == "coworking_menu")
-async def coworking_menu(callback: types.CallbackQuery, user: TelegramUser) -> None:
-    print(user)
+
+@router.callback_query(MainMenuCallback.filter(F.next_menu_prefix == "coworking"))
+async def coworking_menu(callback: types.CallbackQuery, tg_user: TelegramUser) -> None:
+    msg_text = _("coworking menu text")
     if callback.message:
         await callback.message.edit_text(
-            _("coworking menu text"),
-            reply_markup=coworking_menu_keyboard(user.is_admin),
+            msg_text,
+            reply_markup=coworking_menu_keyboard(tg_user.is_admin),
         )
     else:
         await callback.answer(
-            _("coworking menu text"),
-            reply_markup=coworking_menu_keyboard(user.is_admin),
+            msg_text,
+            reply_markup=coworking_menu_keyboard(tg_user.is_admin),
         )
 
 
-# TODO: change callback data into classes with data
-@router.callback_query(F.data == "coworking_info")
-async def coworking_info(callback: types.CallbackQuery, user: TelegramUser) -> None:
+@router.callback_query(CoworkingMenuCallback.filter(F.action == "info"))
+async def coworking_info(callback: types.CallbackQuery, tg_user: TelegramUser) -> None:
+    msg_text = _("coworking info text")
+
     if callback.message:
         await callback.message.edit_text(
-            _("coworking info text"),
-            reply_markup=coworking_menu_keyboard(user.is_admin),
+            msg_text,
+            reply_markup=coworking_menu_keyboard(tg_user.is_admin),
         )
     else:
         await callback.answer(
-            _("coworking info text"),
-            reply_markup=coworking_menu_keyboard(user.is_admin),
+            msg_text,
+            reply_markup=coworking_menu_keyboard(tg_user.is_admin),
         )
 
 
-# TODO: change callback data into classes with data
-@router.callback_query(F.data == "coworking_status")
+@router.callback_query(CoworkingMenuCallback.filter(F.action == "status"))
 async def coworking_status(
     callback: types.CallbackQuery,
-    user: TelegramUser,
+    tg_user: TelegramUser,
     coworking_controller: CoworkingController,
 ) -> None:
     status: CoworkingStatus | None = coworking_controller.get_status()
-    print(status)
+
     if status is None:
         msg_text = _("coworking status text if status is None")
     else:
@@ -64,98 +73,211 @@ async def coworking_status(
                 status=status.status, duration=status.duration
             )
         else:
-            msg_text = _("coworking status text {status}").format(status=status)
+            msg_text = _("coworking status text {status}").format(status=status.status)
 
     if callback.message:
         await callback.message.edit_text(
             msg_text,
-            reply_markup=coworking_menu_keyboard(user.is_admin),
+            reply_markup=coworking_menu_keyboard(tg_user.is_admin),
         )
     else:
         await callback.answer(
             msg_text,
-            reply_markup=coworking_menu_keyboard(user.is_admin),
+            reply_markup=coworking_menu_keyboard(tg_user.is_admin),
         )
 
 
-# TODO: make one handler for open and close status
-@router.callback_query(F.data == "coworking_admin_menu")
-async def coworking_admin_menu(
-    callback: types.CallbackQuery, user: TelegramUser
+@router.callback_query(CoworkingMenuCallback.filter(F.action == "subscribe"))
+async def coworking_notifications(
+    callback: types.CallbackQuery,
+    tg_user: TelegramUser,
+    coworking_controller: CoworkingController,
 ) -> None:
+    msg_text = _(
+        "Подписавшись на обновления тебе будут приходить уведомление о статусе коворкинга"
+    )
+    subscribed = coworking_controller.is_subscribed(tg_user.tg_id)
+    if callback.message:
+        await callback.message.edit_text(
+            msg_text,
+            reply_markup=coworking_subscription(subscribed),
+        )
+    else:
+        await callback.answer(
+            msg_text,
+            reply_markup=coworking_subscription(subscribed),
+        )
+
+
+@router.callback_query(SubscriptionCallback.filter(F.subscribed == True))
+async def coworking_unsubscribe(
+    callback: types.CallbackQuery,
+    tg_user: TelegramUser,
+    coworking_controller: CoworkingController,
+) -> None:
+    msg_text = _("Ты отписался от уведомлений о статусе коворкинга")
+    coworking_controller.subscribe_user(tg_user.tg_id, False)
+
+    if callback.message:
+        await callback.message.edit_text(
+            msg_text,
+            reply_markup=coworking_menu_keyboard(tg_user.is_admin),
+        )
+        await callback.answer()
+    else:
+        await callback.answer(
+            msg_text,
+            reply_markup=coworking_menu_keyboard(tg_user.is_admin),
+        )
+
+
+@router.callback_query(SubscriptionCallback.filter(F.subscribed == False))
+async def coworking_subscribe(
+    callback: types.CallbackQuery,
+    tg_user: TelegramUser,
+    coworking_controller: CoworkingController,
+) -> None:
+
+    msg_text = _("Ты подписался на уведомления о статусе коворкинга")
+
+    coworking_controller.subscribe_user(tg_user.tg_id, True)
+
+    if callback.message:
+        await callback.message.edit_text(
+            msg_text,
+            reply_markup=coworking_menu_keyboard(tg_user.is_admin),
+        )
+        await callback.answer()
+    else:
+        await callback.answer(
+            msg_text,
+            reply_markup=coworking_menu_keyboard(tg_user.is_admin),
+        )
+
+
+@router.callback_query(CoworkingMenuCallback.filter(F.action == "admin_menu"))
+async def coworking_admin_menu(callback: types.CallbackQuery) -> None:
     msg_text = _("coworking admin menu text")
 
     if callback.message:
         await callback.message.edit_text(
-            _("coworking admin menu text"),
-            reply_markup=coworking_status_keyboard(),
+            msg_text,
+            reply_markup=coworking_admin_keyboard(CoworkingStatusCallback()),
         )
     else:
         await callback.answer(
-            _("coworking admin menu text"),
-            reply_markup=coworking_status_keyboard(),
+            msg_text,
+            reply_markup=coworking_admin_keyboard(CoworkingStatusCallback()),
         )
 
 
-# FIXME: merge into one handler
-@router.callback_query(F.data == "coworking_status_open")
-async def coworking_admin_status_open(
+@router.callback_query(CoworkingStatusCallback.filter(F.action == None))
+async def coworking_status_menu(
     callback: types.CallbackQuery,
-    user: TelegramUser,
+    callback_data: CoworkingStatusCallback,
+) -> None:
+    msg_text = _("Меню администратора для управления статусом ковркинга")
+    markup = coworking_admin_keyboard(callback_data)
+    if callback.message:
+        await callback.message.edit_text(msg_text, reply_markup=markup)
+        await callback.answer()
+    else:
+        await callback.answer(
+            msg_text,
+            reply_markup=markup,
+        )
+
+
+@router.callback_query(
+    and_f(
+        CoworkingStatusCallback.filter(F.action == CoworkingStatus.CLOSE),
+        CoworkingStatusCallback.filter(F.duration == None),
+    )
+)
+async def coworking_status_duration_selector(
+    callback: types.CallbackQuery,
+    callback_data: CoworkingStatusCallback,
+) -> None:
+    msg_text = _("Coworking admin status close durations selection")
+    markup = coworking_admin_keyboard(callback_data)
+    if callback.message:
+        await callback.message.edit_text(msg_text, reply_markup=markup)
+        await callback.answer()
+    else:
+        await callback.answer(
+            msg_text,
+            reply_markup=markup,
+        )
+
+
+@router.callback_query(
+    CoworkingStatusCallback.filter(
+        F.action == CoworkingStatus.CLOSE and F.duration != None
+    )
+)
+async def coworking_status_close(
+    callback: types.CallbackQuery,
+    tg_user: TelegramUser,
     coworking_controller: CoworkingController,
+    callback_data: CoworkingStatusCallback,
+    bot: Bot,
 ) -> None:
-    coworking_controller.set_status(user.tg_id, CoworkingStatus.OPEN)
-    msg_text = _("coworking status change to open text")
-    if callback.message:
-        await callback.message.edit_text(
-            msg_text,
-            reply_markup=coworking_menu_keyboard(user.is_admin),
+
+    coworking_controller.set_status(
+        tg_user.tg_id,
+        callback_data.action,  # type: ignore ( т.к. проверяем в фильтре)
+        callback_data.duration if callback_data.duration > 0 else None,  # type: ignore ( т.к. проверяем в фильтре)
+    )
+    mention = get_user_mention(tg_user)
+    if callback_data.duration == -1:
+        msg_text = _("🔑🔴 Коворкинг ITAM закрыт \n\nОтветственный: {mention}").format(
+            mention=mention
         )
+    else:
+
+        msg_text = _(
+            "🔑🔴 Коворкинг ITAM закрыт на {duration} минут \n\nОтветственный: {mention}"
+        ).format(duration=callback_data.duration, mention=mention)
+    markup = coworking_admin_keyboard(callback_data)
+    if callback.message:
+        await callback.message.edit_text(msg_text, reply_markup=markup)
+        await callback.answer()
     else:
         await callback.answer(
             msg_text,
-            reply_markup=coworking_menu_keyboard(user.is_admin),
+            reply_markup=markup,
         )
 
+    # уведомление пользователей об изменении статуса коворкинга
+    subscribed = coworking_controller.get_subscribed_ids()
+    await asyncio.gather(*[bot.send_message(u_id, msg_text) for u_id in subscribed])
 
-@router.callback_query(F.data == "coworking_status_close")
-async def coworking_admin_status_close(
+
+@router.callback_query(CoworkingStatusCallback.filter(F.action == CoworkingStatus.OPEN))
+async def coworking_status_open(
     callback: types.CallbackQuery,
-) -> None:
-
-    msg_text = _("coworking status change to close choose duration text")
-    if callback.message:
-        await callback.message.edit_text(
-            msg_text,
-            reply_markup=coworking_close_duration(),
-        )
-    else:
-        await callback.answer(
-            msg_text,
-            reply_markup=coworking_close_duration(),
-        )
-
-
-@router.callback_query(F.data.startswith("coworking_status_change_close_"))
-async def coworking_admin_choose_duration(
-    callback: types.CallbackQuery,
-    user: TelegramUser,
+    tg_user: TelegramUser,
     coworking_controller: CoworkingController,
+    callback_data: CoworkingStatusCallback,
+    bot: Bot,
 ) -> None:
-    duration = callback.data.split("_")[-1]
-    if duration == "permanent":
-        duration = None
-    else:
-        duration = int(duration)
-    coworking_controller.set_status(user.tg_id, CoworkingStatus.CLOSE, duration)
-    msg_text = _("coworking status change to close text")
+
+    coworking_controller.set_status(tg_user.tg_id, callback_data.action)  # type: ignore проверено в фильтре
+    mention = get_user_mention(tg_user)
+
+    msg_text = _("🟢 Коворкинг ITAM открыт \n\nОтветственный: {mention}").format(
+        mention=mention
+    )
+    markup = coworking_admin_keyboard(callback_data)
     if callback.message:
-        await callback.message.edit_text(
-            msg_text,
-            reply_markup=coworking_menu_keyboard(user.is_admin),
-        )
+        await callback.message.edit_text(msg_text, reply_markup=markup)
+        await callback.answer()
     else:
         await callback.answer(
             msg_text,
-            reply_markup=coworking_menu_keyboard(user.is_admin),
+            reply_markup=markup,
         )
+
+    # уведомление пользователей об изменении статуса коворкинга
+    subscribed = coworking_controller.get_subscribed_ids()
+    await asyncio.gather(*[bot.send_message(u_id, msg_text) for u_id in subscribed])

@@ -1,21 +1,47 @@
+from sqlite3 import SQLITE_CREATE_INDEX
+import typing as tp
 from aiogram import types
 
+from aiogram.filters.callback_data import CallbackData
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.utils.i18n import gettext as _
+
+COWORKING_ACTIONS = tp.Literal[
+    "info", "status", "subscribe", "unsubscribe", "admin_menu"
+]
+
+AVALIABLE_MENUS = tp.Literal["menu", "coworking", "profile", "help"]
+
+
+class MainMenuCallback(CallbackData, prefix="menu"):
+    next_menu_prefix: AVALIABLE_MENUS = "menu"
+
+
+class CoworkingMenuCallback(CallbackData, prefix="coworking"):
+    action: COWORKING_ACTIONS
 
 
 def menu_keyboard() -> types.InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.row(
         types.InlineKeyboardButton(
-            text=_("Coworking inline keyboard button"), callback_data="coworking_menu"
+            text=_("👥 Коворкинг"),
+            callback_data=MainMenuCallback(next_menu_prefix="coworking").pack(),
         ),
     )
     builder.row(
         types.InlineKeyboardButton(
-            text=_("Settings inline keyboard button"), callback_data="settings"
+            text=_("⚙️ Профиль"),
+            callback_data=MainMenuCallback(next_menu_prefix="profile").pack(),
         ),
     )
+    builder.row(
+        types.InlineKeyboardButton(
+            text=_("🆘 Что это такое?"),
+            callback_data=MainMenuCallback(next_menu_prefix="help").pack(),
+        ),
+    )
+
     return builder.as_markup()
 
 
@@ -23,70 +49,32 @@ def coworking_menu_keyboard(is_admin: bool) -> types.InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.row(
         types.InlineKeyboardButton(
-            text=_("Coworking info inline keyboard button"),
-            callback_data="coworking_info",
+            text=_("ℹ️ Информация"),
+            callback_data=CoworkingMenuCallback(action="info").pack(),
         ),
         types.InlineKeyboardButton(
-            text=_("Coworking status inline keyboard button"),
-            callback_data="coworking_status",
+            text=_("📝 Статус"),
+            callback_data=CoworkingMenuCallback(action="status").pack(),
         ),
+    )
+    builder.row(
+        types.InlineKeyboardButton(
+            text=_("✉️ Обновления"),
+            callback_data=CoworkingMenuCallback(action="subscribe").pack(),
+        )
+    )
+    builder.row(
+        types.InlineKeyboardButton(
+            text=_("↩️ Назад"),
+            callback_data=MainMenuCallback(next_menu_prefix="menu").pack(),
+        )
     )
     if is_admin:
         builder.row(
             types.InlineKeyboardButton(
-                text=_("Coworking admin menu inline keyboard button"),
-                callback_data="coworking_admin_menu",
+                text=_("🔧 Меню администратора"),
+                callback_data=CoworkingMenuCallback(action="admin_menu").pack(),
             ),
         )
-
-    return builder.as_markup()
-
-
-def coworking_status_keyboard() -> types.InlineKeyboardMarkup:
-
-    builder = InlineKeyboardBuilder()
-    builder.row(
-        types.InlineKeyboardButton(
-            text=_("Coworking admin status change to open inline keyboard button"),
-            callback_data="coworking_status_open",
-        ),
-        types.InlineKeyboardButton(
-            text=_("Coworking admin status change to close inline keyboard button"),
-            callback_data="coworking_status_close",
-        ),
-    )
-
-    return builder.as_markup()
-
-
-def coworking_close_duration() -> types.InlineKeyboardMarkup:
-    # FIXME: make callbackdata class for different durations
-    builder = InlineKeyboardBuilder()
-    builder.row(
-        types.InlineKeyboardButton(
-            text=_("Coworking admin close duration permanent  inline keyboard button"),
-            callback_data="coworking_status_change_close_permanent",
-        ),
-    )
-    builder.row(
-        types.InlineKeyboardButton(
-            text=_("Coworking admin close duration 30 minutes inline keyboard button"),
-            callback_data="coworking_status_change_close_30",
-        ),
-        types.InlineKeyboardButton(
-            text=_("Coworking admin close duration 60 minutes inline keyboard button"),
-            callback_data="coworking_status_change_close_60",
-        ),
-    )
-    builder.row(
-        types.InlineKeyboardButton(
-            text=_("Coworking admin close duration 90 minutes inline keyboard button"),
-            callback_data="coworking_status_change_close_90",
-        ),
-        types.InlineKeyboardButton(
-            text=_("Coworking admin close duration 120 minutes inline keyboard button"),
-            callback_data="coworking_status_change_close_120",
-        ),
-    )
 
     return builder.as_markup()

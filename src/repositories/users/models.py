@@ -1,9 +1,20 @@
 from dataclasses import dataclass
+from pydantic import BaseModel
 import typing as tp
 
 
-@dataclass
-class TelegramUser:
+class UserProfile(BaseModel):
+    fio: str | None = None
+    email: str | None = None
+    educational_group: str | None = None
+    portfolio_link: str | None = None
+    majors: list[str] | None = None
+    skills: list[str] | None = None
+    external_links: str | None = None
+    mentor_status: bool | None = None
+
+
+class TelegramUser(BaseModel):
     """Пользователь телеграма
 
     Attributes
@@ -31,3 +42,4 @@ class TelegramUser:
     is_premium: bool
     language_code: str
     is_admin: bool
+    profile: UserProfile = UserProfile()

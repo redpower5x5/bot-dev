@@ -19,8 +19,9 @@ class CoworkingController:
         self, tg_id: int, status: str, duration: int | None = None
     ) -> CoworkingStatus:
         user = self.user_repo.get_user(tg_id)
+
         if user is None or not user.is_admin:
-            raise ValueError("user is not admin")
+            raise ValueError(f"user {tg_id} is not admin")
 
         self.coworking_repo.set_status(tg_id, status, duration)
         mention = (
@@ -34,3 +35,12 @@ class CoworkingController:
             duration=duration,
             time=dt.datetime.now(),
         )
+
+    def is_subscribed(self, tg_id: int) -> bool:
+        return self.coworking_repo.get_coworking_notifications(tg_id)
+
+    def subscribe_user(self, tg_id: int, subscribed: bool) -> None:
+        self.coworking_repo.set_coworking_notifications(tg_id, subscribed)
+
+    def get_subscribed_ids(self) -> list[int]:
+        return self.coworking_repo.get_coworking_subscribed()

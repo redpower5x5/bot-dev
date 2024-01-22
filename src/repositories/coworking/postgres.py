@@ -15,16 +15,16 @@ class CoworkingRepositoryPostgres(CoworkingRepositoryBase):
         cur = self.conn.cursor()
         cur.execute(
             """
-                select 
+                select
                     tu.id,
                     tu.first_name,
                     tu.username,
                     cw.status,
                     cw.duration,
-                    cw.created_at 
-                from coworking cw 
-                join telegram_users tu 
-                on cw.responsible_id = tu.id 
+                    cw.created_at
+                from coworking cw
+                join telegram_users tu
+                on cw.responsible_id = tu.id
                 order by cw.created_at desc limit 1;
             """
         )
@@ -64,3 +64,57 @@ class CoworkingRepositoryPostgres(CoworkingRepositoryBase):
         )
         self.conn.commit()
         cur.close()
+
+    def subscribe(self, tg_id: int) -> None:
+        cur = self.conn.cursor()
+        cur.execute(
+            "update subscriptions set coworking = true where id = %s;",
+            (tg_id,),
+        )
+        self.conn.commit()
+        cur.close()
+
+    def subscribed_users(self) -> list[int]:
+        cur = self.conn.cursor()
+        cur.execute("select id from subscriptions where coworking = true;")
+        result = cur.fetchall()
+        cur.close()
+        return [row[0] for row in result]
+
+    def set_coworking_notifications(self, tg_id: int, subscribed: bool) -> None:
+        cur = self.conn.cursor()
+        cur.execute(
+            """
+            update subscriptions set coworking = %s where id = %s;
+            """,
+            (
+                subscribed,
+                tg_id,
+            ),
+        )
+        self.conn.commit()
+        cur.close()
+
+    def get_coworking_notifications(self, tg_id: int) -> bool:
+        cur = self.conn.cursor()
+        cur.execute(
+            """
+                    select coworking from subscriptions where id = %s;
+                    """,
+            (tg_id,),
+        )
+        coworking = cur.fetchone()
+        if coworking is None:
+            raise ValueError
+        return coworking[0]
+
+    def get_coworking_subscribed(self) -> list[int]:
+        cur = self.conn.cursor()
+        cur.execute(
+            """
+                    select id from subscriptions where coworking = true;
+                    """
+        )
+        users = cur.fetchall()[0]
+        return list(users)
+

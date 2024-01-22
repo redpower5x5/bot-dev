@@ -26,5 +26,5 @@ class CoworkingStatus:
 
     responsible_mention: str
     status: tp.Annotated[str, COWORKING_STATUS]
-    duration: tp.Optional[int]
+    duration: tp.Optional[int] 
     time: dt.datetime

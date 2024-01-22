@@ -10,8 +10,7 @@ class Localization(I18nMiddleware):
         self, event: types.TelegramObject, data: tp.Dict[str, tp.Any]
     ) -> str:
 
-        if "event_from_user" in data.keys():
-
-            return data["event_from_user"].language_code or "ru"
-
+        if "tg_user" in data.keys():
+            user: TelegramUser = data["tg_user"]
+            return user.language_code
         return "ru"

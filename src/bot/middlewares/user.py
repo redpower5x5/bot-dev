@@ -2,9 +2,10 @@ import typing as tp
 from aiogram import BaseMiddleware
 from aiogram import types
 
-# TODO: change repositories package structure of imports
+
 from repositories.users import UserRepositoryBase
-from repositories.coworking import CoworkingRepositoryBase
+
+# from repositories.coworking import CoworkingRepositoryBase
 
 
 class UserMiddleware(BaseMiddleware):
@@ -20,17 +21,20 @@ class UserMiddleware(BaseMiddleware):
         data: tp.Dict[str, tp.Any],
     ) -> tp.Any:
 
-        tg_user: tp.Optional[types.User] = data.get("event_from_user")
-        if tg_user is None:
+        aiogram_user: tp.Optional[types.User] = data.get("event_from_user")
+        if aiogram_user is None:
             return await handler(event, data)
         self.user_repo.save_user(
-            tg_user.id,
-            tg_user.first_name,
-            tg_user.last_name,
-            tg_user.username,
+            aiogram_user.id,
+            aiogram_user.first_name,
+            aiogram_user.last_name,
+            aiogram_user.username,
+        )
+        data["user_repo"] = self.user_repo
+        data["tg_user"] = (
+            self.user_repo.get_user(aiogram_user.id, True) if aiogram_user else None
         )
 
-        data["user"] = self.user_repo.get_user(tg_user.id) if tg_user else None
         result = await handler(event, data)
 
         return result

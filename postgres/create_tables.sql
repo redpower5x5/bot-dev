@@ -14,3 +14,26 @@ create table if not exists coworking(
     duration integer default null,
     created_at timestamp not null default NOW()
 );
+create table if not exists profiles(
+    user_id int primary key references telegram_users(id) on delete cascade,
+    fio text,
+    email text,
+    educational_group text,
+    portfolio_link text,
+    majors text [],
+    external_links text [],
+    skills text [],
+    mentor boolean
+);
+create table if not exists subscriptions(
+    id int primary key references telegram_users(id) on delete cascade,
+    coworking boolean default false
+);
+create table if not exists admin_invite_codes(
+    id serial primary key,
+    code text,
+    admin_id integer not null REFERENCES telegram_users(id) on DELETE CASCADE,
+    user_id integer REFERENCES telegram_users(id) on DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME zone not null default CURRENT_TIMESTAMP,
+    activated_at TIMESTAMP WITH TIME zone
+);

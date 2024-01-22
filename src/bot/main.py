@@ -1,59 +1,61 @@
+from email import message
 import sys
 from os import getenv
 
 from aiogram import Bot, Dispatcher
 from aiogram.enums import ParseMode
+
 from aiogram.utils.i18n import I18n
 
 
 import psycopg2
 import dotenv
-from .middlewares import UserMiddleware, CoworkingMiddleware, Localization
 
-# FIXME: merging routers
-from .handlers import common, coworking
+
+from .middlewares import (
+    UserMiddleware,
+    CoworkingMiddleware,
+    Localization,
+    SettingsMiddleware,
+    BotMiddleware,
+)
+
+
+from .handlers import common, coworking, profile
 
 from repositories.coworking import CoworkingRepositoryPostgres
 from repositories.users import UserRepositoryPostgres
-from controllers.coworking import CoworkingController
+from .settings import Settings
 
 dotenv.load_dotenv("../.env")
 
 
-TOKEN = "6509452055:AAHlGf_B0g4EHuIZRHre7aUaIxW7BpEy39g"
-PG_HOST = getenv("POSTGRES_HOST")
-PG_DB = getenv("POSTGRES_DB")
-PG_USER = getenv("POSTGRES_USER")
-PG_PASSWORD = getenv("POSTGRES_PASSWORD")
-
-if (
-    TOKEN is None
-    or PG_HOST is None
-    or PG_DB is None
-    or PG_USER is None
-    or PG_PASSWORD is None
-):
-    raise ValueError("Missing environment variables")
-
-
 async def main() -> None:
-    # TODO: separate router creation
-    pg_connection = psycopg2.connect(
-        host=PG_HOST, database=PG_DB, user=PG_USER, password=PG_PASSWORD
-    )
+    settings = Settings()  # type: ignore
+    pg_connection = psycopg2.connect(settings.build_postgres_dsn())
+
     user_repo = UserRepositoryPostgres(pg_connection)
     coworking_repo = CoworkingRepositoryPostgres(pg_connection)
     i18n = I18n(path="translations", default_locale="ru", domain="messages")
 
     dp = Dispatcher()
+    bot = Bot(settings.bot_token.get_secret_value(), parse_mode=ParseMode.HTML)
     locale = Localization(i18n)
     locale.setup(dp)
 
+    dp.update.outer_middleware(SettingsMiddleware(settings))
+    dp.update.outer_middleware(BotMiddleware(bot))
     dp.update.outer_middleware(UserMiddleware(user_repo))
 
-    dp.update.outer_middleware(CoworkingMiddleware(user_repo, coworking_repo))
-    dp.include_routers(common.router, coworking.router)
+    dp.update.middleware(CoworkingMiddleware(user_repo, coworking_repo))
+    dp.include_routers(common.router, coworking.router, profile.router)
 
-    bot = Bot(TOKEN, parse_mode=ParseMode.HTML)
+    admins = user_repo.get_admins()
+
+    for user_id in admins:
+        await bot.send_message(
+            chat_id=user_id,
+            text="Бот был перезапущен, подписки на коворкинг сброшены",
+        )
 
     await dp.start_polling(bot)
