@@ -115,6 +115,6 @@ class CoworkingRepositoryPostgres(CoworkingRepositoryBase):
                     select id from subscriptions where coworking = true;
                     """
         )
-        users = cur.fetchall()[0]
-        return list(users)
+        users = [i[0] for i in cur.fetchall()]
 
+        return users

@@ -52,10 +52,10 @@ async def main() -> None:
 
     admins = user_repo.get_admins()
 
-    for user_id in admins:
-        await bot.send_message(
-            chat_id=user_id,
-            text="Бот был перезапущен, подписки на коворкинг сброшены",
-        )
+    # for user_id in admins:
+    #     await bot.send_message(
+    #         chat_id=user_id,
+    #         text="Бот был перезапущен, подписки на коворкинг сброшены",
+    #     )
 
     await dp.start_polling(bot)

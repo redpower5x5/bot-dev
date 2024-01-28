@@ -10,7 +10,7 @@ class UserProfile(BaseModel):
     portfolio_link: str | None = None
     majors: list[str] | None = None
     skills: list[str] | None = None
-    external_links: str | None = None
+    external_links: list[str] | None = None
     mentor_status: bool | None = None
 
 

@@ -250,7 +250,11 @@ async def coworking_status_close(
 
     # уведомление пользователей об изменении статуса коворкинга
     subscribed = coworking_controller.get_subscribed_ids()
-    await asyncio.gather(*[bot.send_message(u_id, msg_text) for u_id in subscribed])
+    print(subscribed)
+    for i in subscribed:
+        await asyncio.sleep(0.2)
+        await bot.send_message(i, msg_text)
+    # await asyncio.gather(*[bot.send_message(u_id, msg_text) for u_id in subscribed])
 
 
 @router.callback_query(CoworkingStatusCallback.filter(F.action == CoworkingStatus.OPEN))
@@ -280,4 +284,9 @@ async def coworking_status_open(
 
     # уведомление пользователей об изменении статуса коворкинга
     subscribed = coworking_controller.get_subscribed_ids()
-    await asyncio.gather(*[bot.send_message(u_id, msg_text) for u_id in subscribed])
+    print(subscribed)
+    print(subscribed)
+    for i in subscribed:
+        await asyncio.sleep(0.2)
+        await bot.send_message(i, msg_text)
+    # await asyncio.gather(*[bot.send_message(u_id, msg_text) for u_id in subscribed])

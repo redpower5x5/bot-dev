@@ -48,7 +48,6 @@ router: tp.Final[Router] = Router(name="profile")
 class ProfileForm(StatesGroup):
     field_name = State()  # to track current editing field
 
-    # FIXME: not linked to PROFILE_EDITABLE_FIELD
     editing = State()
     fio = State()
     email = State()
@@ -139,6 +138,7 @@ async def process_editing(
             markup = editing_keyboard(next_input=True)
             await state.set_state(ProfileForm.portfolio_link)
         case "majors":
+            # TODO: добавить мулти выбор инлайн
             msg_text = _("Выбери сферы в которых ты специализируешься")
             markup = editing_keyboard(next_input=True)
             await state.set_state(ProfileForm.majors)
@@ -170,21 +170,12 @@ async def process_editing(
 async def sync_profile_data(
     user_repo: UserRepositoryBase, tg_user: TelegramUser, user_data: dict | None
 ) -> TelegramUser:
-    if user_data is None:
+    if user_data and "tg_user" in user_data.keys():
+        tg_user = user_data["tg_user"]
+        user_repo.save_profile_data(tg_user.tg_id, **tg_user.profile.model_dump())
         return tg_user
-
-    tg_user.profile.educational_group = user_data.get(
-        "educational_group", tg_user.profile.educational_group
-    )
-    tg_user.profile.email = user_data.get("email", tg_user.profile.email)
-    tg_user.profile.external_links = user_data.get(
-        "external_links", tg_user.profile.external_links
-    )
-    user_repo.save_profile_data(tg_user.tg_id, **tg_user.profile.model_dump())
-    result = user_repo.get_user(tg_user.tg_id, True)
-    if result:
-        tg_user = result
-    return tg_user
+    else:
+        return tg_user
 
 
 @router.callback_query(ProfileMenuCallback.filter(F.action == None))
@@ -194,10 +185,9 @@ async def profile_menu(
     tg_user: TelegramUser,
     user_repo: UserRepositoryBase,
 ) -> None:
+
     msg_text = _("ProfileMenu text")
     markup = profile_menu_keyboard()
-    user_data = await state.get_data()
-
     tg_user = await sync_profile_data(user_repo, tg_user, await state.get_data())
 
     if callback.message:
@@ -218,6 +208,7 @@ async def profile_data(
     tg_user: TelegramUser,
     user_repo: UserRepositoryBase,
 ) -> None:
+
     tg_user = await sync_profile_data(user_repo, tg_user, await state.get_data())
     msg_text = get_editing_text(tg_user=tg_user)
     if callback.message:
@@ -308,6 +299,7 @@ async def process_admin_callback(
                     msg_text, reply_markup=admin_menu_keyboard()
                 )
             await callback.answer()
+
         case True:
             await callback.answer()
     #
@@ -468,7 +460,9 @@ async def process_profile_external_links(
     else:
         # TODO: handle error link
         await message.answer(
-            text=_("Не смог открыть ссылку: {url}").format(url="http://тестоваяссылка")
+            text=_("Не смог открыть ссылку: {url}").format(
+                url=message.text, reply_markup=field_selector_menu()
+            )
         )
 
 
@@ -476,6 +470,7 @@ async def process_profile_external_links(
 async def process_profile_form_mentor(
     message: types.Message, state: FSMContext
 ) -> None:
+    # TODO: inline buttons
     if message.text and message.text.lower() in [_("Yes").lower(), _("No").lower()]:
         data = await state.get_data()
         data["tg_user"].profile.mentor_status = message.text == _("Yes").lower()

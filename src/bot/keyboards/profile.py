@@ -48,12 +48,11 @@ AVALIABLE_PROFESSIONS = [
     "Fullstack",
     "Backend",
     "Frontend",
+    "GameDev",
     "Mobile",
     "DevOps",
     "ML Engineer",
-    "Data Engineer",
     "UI/UX Designer",
-    "Designer",
     "Project Manager",
 ]
 
@@ -183,16 +182,16 @@ def field_selector_menu() -> types.InlineKeyboardMarkup:
 
     builder.row(
         types.InlineKeyboardButton(
-            text=_("💾Сохранить"),
-            callback_data=ProfileMenuCallback(action="user_form").pack(),
-        )
-    )
-    builder.row(
-        types.InlineKeyboardButton(
             text=_("↩️ Назад"),
             callback_data=ProfileMenuCallback(action=None).pack(),
         )
     )
+    # builder.row(
+    #     types.InlineKeyboardButton(
+    #         text=_("↩️ Назад"),
+    #         callback_data=ProfileMenuCallback(action=None).pack(),
+    #     )
+    # )
 
     return builder.as_markup()
 
