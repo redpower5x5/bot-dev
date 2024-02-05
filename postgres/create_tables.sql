@@ -27,7 +27,19 @@ create table if not exists profiles(
 );
 create table if not exists subscriptions(
     id int primary key references telegram_users(id) on delete cascade,
-    coworking boolean default false
+    coworking boolean default false,
+    hack_club boolean default false,
+    design_club boolean default false,
+    gamedev_club boolean default false,
+    ai_club boolean default false,
+    robot_club boolean default false
+);
+create table if not exists clubs(
+    id serial primary key,
+    name text not null,
+    description text not null,
+    chat_link text not null,
+    created_at timestamp not null default NOW()
 );
 create table if not exists admin_invite_codes(
     id serial primary key,

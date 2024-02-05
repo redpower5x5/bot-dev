@@ -15,15 +15,17 @@ import dotenv
 from .middlewares import (
     UserMiddleware,
     CoworkingMiddleware,
+    ClubMiddleware,
     Localization,
     SettingsMiddleware,
     BotMiddleware,
 )
 
 
-from .handlers import common, coworking, profile
+from .handlers import common, coworking, profile, club
 
 from repositories.coworking import CoworkingRepositoryPostgres
+from repositories.club import ClubRepositoryPostgres
 from repositories.users import UserRepositoryPostgres
 from .settings import Settings
 
@@ -36,6 +38,7 @@ async def main() -> None:
 
     user_repo = UserRepositoryPostgres(pg_connection)
     coworking_repo = CoworkingRepositoryPostgres(pg_connection)
+    club_repo = ClubRepositoryPostgres(pg_connection)
     i18n = I18n(path="translations", default_locale="ru", domain="messages")
 
     dp = Dispatcher()
@@ -48,7 +51,8 @@ async def main() -> None:
     dp.update.outer_middleware(UserMiddleware(user_repo))
 
     dp.update.middleware(CoworkingMiddleware(user_repo, coworking_repo))
-    dp.include_routers(common.router, coworking.router, profile.router)
+    dp.update.middleware(ClubMiddleware(user_repo, club_repo))
+    dp.include_routers(common.router, coworking.router, profile.router, club.router)
 
     admins = user_repo.get_admins()
 

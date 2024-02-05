@@ -252,4 +252,10 @@ def admin_menu_keyboard() -> types.InlineKeyboardMarkup:
             callback_data=ProfileAdminMenuCallback(action="change_status").pack(),
         )
     )
+    builder.row(
+        types.InlineKeyboardButton(
+            text=_("↩️ Назад"),
+            callback_data=MainMenuCallback(next_menu_prefix="profile").pack(),
+        )
+    )
     return builder.as_markup()

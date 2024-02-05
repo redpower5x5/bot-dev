@@ -6,9 +6,11 @@ from aiogram.filters import and_f
 from aiogram.utils.i18n import gettext as _
 
 from controllers.coworking import CoworkingController
-from repositories.coworking.models import CoworkingStatus
+from repositories.coworking.models import CoworkingStatus, COWORKING_STATUS
 
 from repositories.users.models import TelegramUser
+
+import datetime as dt
 
 
 from ..keyboards.menu import (
@@ -69,11 +71,14 @@ async def coworking_status(
         msg_text = _("coworking status text if status is None")
     else:
         if status.duration:
-            msg_text = _("coworking status text {status} {duration}").format(
-                status=status.status, duration=status.duration
+            msg_text = _("coworking closed until {due} {mention}").format(
+                due=dt.datetime.strftime(status.time+dt.timedelta(minutes=status.duration), "%H:%M"),
+                mention=status.responsible_mention
             )
         else:
-            msg_text = _("coworking status text {status}").format(status=status.status)
+            if status.status == 'open':
+                msg_text = _("coworking open {mention}").format(mention=status.responsible_mention)
+            else: msg_text = _("coworking closed {mention}").format(mention=status.responsible_mention)
 
     if callback.message:
         await callback.message.edit_text(
