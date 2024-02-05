@@ -23,7 +23,8 @@ create table if not exists profiles(
     majors text [],
     external_links text [],
     skills text [],
-    mentor boolean
+    mentor boolean,
+    company text
 );
 create table if not exists subscriptions(
     id int primary key references telegram_users(id) on delete cascade,

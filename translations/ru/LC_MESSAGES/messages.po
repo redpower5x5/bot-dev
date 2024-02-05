@@ -192,11 +192,11 @@ msgstr ""
 #: src/bot/handlers/profile.py:85 src/bot/handlers/profile.py:474
 #: src/bot/handlers/profile.py:476
 msgid "Yes"
-msgstr ""
+msgstr "Да"
 
 #: src/bot/handlers/profile.py:85 src/bot/handlers/profile.py:474
 msgid "No"
-msgstr ""
+msgstr "Нет"
 
 #: src/bot/handlers/profile.py:88
 msgid ""
@@ -237,11 +237,12 @@ msgstr ""
 
 #: src/bot/handlers/profile.py:146
 msgid "Выбери стек технологий с которымы ты хорошо знаком"
-msgstr ""
+msgstr "Напиши свой стек технологий, перечисляя их через ',' без пробелов\n<i>(например: flask,python,ai,docker)</i>"
 
 #: src/bot/handlers/profile.py:150
 msgid "Тут ты можешь оставить дополнительные ссылки на соцсети / резюме"
-msgstr ""
+msgstr "Тут ты можешь оставить дополнительные ссылки на соцсети / резюме\n"
+"<i>для неескольких ссылок укажи их через ',' без пробелов</i>\n<i>(например: https://vk.com/aionixx,https://t.me/OneOfTheFirst)</i>"
 
 #: src/bot/handlers/profile.py:155
 msgid "Готов ли ты стать ментором"

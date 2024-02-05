@@ -146,7 +146,9 @@ msgid ""
 "<b>Ссылки:</b>\n"
 "{links}\n"
 "<b>Готовность стать ментором:</b>\n"
-"{mentor}"
+"{mentor}\n"
+"<b>Компания:</b>\n"
+"{company}"
 msgstr ""
 
 #: src/bot/handlers/profile.py:68 src/bot/handlers/profile.py:69
