@@ -12,8 +12,8 @@ services:
     volumes:
       - "redis:/var/lib/redis"
       - "redis-config:/usr/local/etc/redis/redis.conf"
-    ports:
-      - "6379:6379"
+    # ports:
+    #   - "2331:6379"
   postgres:
     image: postgres:15
     restart: always
@@ -25,7 +25,7 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "5323:5432"
   bot:
       build:
         context: ../
