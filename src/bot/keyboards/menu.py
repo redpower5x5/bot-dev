@@ -114,7 +114,7 @@ def clubs_menu_keyboard() -> types.InlineKeyboardMarkup:
     )
     builder.row(
         types.InlineKeyboardButton(
-            text=_("🤖 клуб робототехники"),
+            text=_("🤖 Клуб робототехники"),
             callback_data=ClubsMenuCallback(club="robot_club").pack(),
         ),
     )

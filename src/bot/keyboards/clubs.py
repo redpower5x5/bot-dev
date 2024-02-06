@@ -28,7 +28,7 @@ def club_subscription_and_info(subscribed: bool, club: str, club_link: str) -> t
         )
     builder.row(
         types.InlineKeyboardButton(
-            text=_("📢 чат клуба"),
+            text=_("📢 Чат клуба"),
             url=club_link
         )
     )
