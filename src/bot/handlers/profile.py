@@ -68,7 +68,7 @@ class ProfileForm(StatesGroup):
 def get_editing_text(tg_user: TelegramUser) -> str:
     if tg_user.profile:
         return _(
-            "Что ты хочешь отредактировать?\n\n<b>ФИО:</b>\n{fio}\n\n<b>Почта:</b>\n{email}\n<b>Учебная группа:</b>\n{group}\n<b>Ссылка на портфолио:</b>\n{portfolio}\n<b>Направления разработки:</b>\n{majors}\n<b>Навыки/Стэк технолгий:</b>\n{skills}\n<b>Ссылки на соц. сети:</b>\n{links}\n<b>Готовность стать ментором:</b>\n{mentor}\n<b>Компания:</b>\n{company}"
+            "Что ты хочешь отредактировать?\n\n<b>ФИО:</b>\n{fio}\n<b>Почта:</b>\n{email}\n<b>Учебная группа:</b>\n{group}\n<b>Ссылка на портфолио:</b>\n{portfolio}\n<b>Направления разработки:</b>\n{majors}\n<b>Навыки/Стэк технолгий:</b>\n{skills}\n<b>Ссылки на соц. сети:</b>\n{links}\n<b>Готовность стать ментором:</b>\n{mentor}\n<b>Компания:</b>\n{company}"
         ).format(
             fio=tg_user.profile.fio if tg_user.profile.fio else _("Не указано"),
             email=tg_user.profile.email if tg_user.profile.email else _("Не указано"),
@@ -162,7 +162,7 @@ async def process_editing(
             markup = mentor_status_keyboard()
             await state.set_state(ProfileForm.mentor_status)
         case "company":
-            msg_text = _("Введи название компании в которой ты работаешь и должность (если есть)")
+            msg_text = _("Введи название компании, в которой ты работаешь, и должность (если есть)")
             markup = editing_keyboard(next_input=True)
             await state.set_state(ProfileForm.company)
 

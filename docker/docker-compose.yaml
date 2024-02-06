@@ -1,5 +1,4 @@
 version: "3"
-name: itam-prod-bot
 volumes:
   redis:
   redis-config:
