@@ -62,7 +62,7 @@ async def command_start_handler(
     )
 
 #handle menu via replyKeyboard
-@router.message(text="🏠 Главное меню")
+@router.message(F.text == "🏠 Главное меню")
 async def menu_handler(message: types.Message) -> None:
     await message.answer(
         text=_("Текст главного меню"),
