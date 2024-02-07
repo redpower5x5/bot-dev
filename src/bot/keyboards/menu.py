@@ -3,7 +3,7 @@ import typing as tp
 from aiogram import types
 
 from aiogram.filters.callback_data import CallbackData
-from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 from aiogram.utils.i18n import gettext as _
 
 COWORKING_ACTIONS = tp.Literal[
@@ -28,6 +28,9 @@ class SubscriptionCallback(CallbackData, prefix="coworking_subscription"):
 class ClubsMenuCallback(CallbackData, prefix="clubs"):
     club: AVALIABLE_CLUBS
 
+def base_menu_reply_key() -> types.ReplyKeyboardMarkup:
+    button = types.KeyboardButton(text='🏠 Главное меню')
+    return types.ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[[button]])
 
 def menu_keyboard() -> types.InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()

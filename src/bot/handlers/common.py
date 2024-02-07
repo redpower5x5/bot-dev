@@ -6,6 +6,7 @@
 
 from sys import prefix
 import typing as tp
+import asyncio
 
 from aiogram import types, Router, F
 
@@ -17,7 +18,7 @@ from bot.settings import Settings
 
 from repositories.users.base import UserRepositoryBase
 
-from ..keyboards.menu import menu_keyboard, MainMenuCallback
+from ..keyboards.menu import menu_keyboard, base_menu_reply_key, MainMenuCallback
 
 from repositories.users.models import TelegramUser
 
@@ -52,6 +53,19 @@ async def command_start_handler(
     username = hbold(tg_user.username or tg_user.first_name)
     await message.answer(
         text=_("Hello , {username}!").format(username=username),
+        reply_markup=base_menu_reply_key(),
+    )
+    await asyncio.sleep(0.2)
+    await message.answer(
+        text = _("Текст главного меню"),
+        reply_markup=menu_keyboard()
+    )
+
+#handle menu via replyKeyboard
+@router.message(text="🏠 Главное меню")
+async def menu_handler(message: types.Message) -> None:
+    await message.answer(
+        text=_("Текст главного меню"),
         reply_markup=menu_keyboard(),
     )
 
