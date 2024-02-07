@@ -225,7 +225,7 @@ async def profile_menu(
 ) -> None:
 
     msg_text = get_profifle_text(tg_user)+_("ProfileMenu text")
-    markup = profile_menu_keyboard()
+    markup = profile_menu_keyboard(tg_user.is_admin)
     tg_user = await sync_profile_data(user_repo, tg_user, await state.get_data())
 
     if callback.message:
