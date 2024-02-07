@@ -225,8 +225,8 @@ msgid "Введи свой email в домене edu.misis.ru"
 msgstr ""
 
 #: src/bot/handlers/profile.py:131
-msgid "Введи свою учебную группу (пример: БИВТ-21-1)"
-msgstr ""
+msgid "Введи свою учебную группу (пример: БИВТ)"
+msgstr "Введи свою учебную группу (пример: БИВТ-20-1)"
 
 #: src/bot/handlers/profile.py:135
 msgid "Ссылка на портфолио с проектами (github/gitlab/notion/etc...)"
