@@ -29,7 +29,7 @@ from ..settings import Settings
 from repositories.users.base import UserRepositoryBase
 from utils import users_table, get_admin_invite_link, create_invite_code
 
-from ..keyboards.menu import MainMenuCallback
+from ..keyboards.menu import MainMenuCallback, base_menu_reply_key
 from ..keyboards.profile import (
     ProfileMenuCallback,
     ProfileAdminMenuCallback,
@@ -147,7 +147,7 @@ async def process_editing(
     # FIXME: split into different handlers
     msg_text: str = _("Error")
     markup: types.InlineKeyboardMarkup | types.ReplyKeyboardMarkup | types.ReplyKeyboardRemove | types.ForceReply | None = (
-        types.ReplyKeyboardRemove()
+        base_menu_reply_key()
     )
     if len((await state.get_data()).keys()) == 0:
         await state.update_data(tg_user=tg_user)
@@ -349,7 +349,7 @@ async def cancel_handler(message: types.Message, state: FSMContext) -> None:
     await state.clear()
     await message.answer(
         _("ProfileForm cancel message"),
-        reply_markup=types.ReplyKeyboardRemove(),
+        reply_markup=base_menu_reply_key(),
     )
     await message.answer(
         _("ProfileMenu text"),
@@ -377,7 +377,7 @@ async def process_profile_form_fio(
         await message.answer(msg_text, reply_markup=field_selector_menu())
     else:
         await message.answer(
-            _("ProfileForm error fio state"), reply_markup=types.ReplyKeyboardRemove()
+            _("ProfileForm error fio state"), reply_markup=base_menu_reply_key()
         )
 
 
@@ -398,7 +398,7 @@ async def process_profile_form_email(
     else:
         await message.answer(
             _("ProfileForm error email state"),
-            reply_markup=types.ReplyKeyboardRemove(),
+            reply_markup=base_menu_reply_key(),
         )
 
 
@@ -429,7 +429,7 @@ async def process_profile_form_group(
     else:
         await message.answer(
             _("ProfileForm error group state"),
-            reply_markup=types.ReplyKeyboardRemove(),
+            reply_markup=base_menu_reply_key(),
         )
 
 
@@ -455,7 +455,7 @@ async def process_profile_form_github(
     else:
         await message.answer(
             _("ProfileForm error github state"),
-            reply_markup=types.ReplyKeyboardRemove(),
+            reply_markup=base_menu_reply_key(),
         )
 
 
@@ -475,7 +475,7 @@ async def process_profile_form_github(
 #     else:
 #         await message.answer(
 #             _("ProfileForm error profession state"),
-#             reply_markup=types.ReplyKeyboardRemove(),
+#             reply_markup=base_menu_reply_key(),
 #         )
 
 @router.callback_query(MajorCallback.filter())
@@ -521,7 +521,7 @@ async def process_profile_form_skills(
     else:
         await message.answer(
             _("ProfileForm error skills state"),
-            reply_markup=types.ReplyKeyboardRemove(),
+            reply_markup=base_menu_reply_key(),
         )
 
 
@@ -567,7 +567,7 @@ async def process_profile_external_links(
 #     else:
 #         await message.answer(
 #             _("ProfileForm error mentor state"),
-#             reply_markup=types.ReplyKeyboardRemove(),
+#             reply_markup=base_menu_reply_key(),
 #         )
 
 @router.callback_query(MentorStatusCallback.filter())
@@ -601,5 +601,5 @@ async def process_profile_form_company(
     else:
         await message.answer(
             _("ProfileForm error company state"),
-            reply_markup=types.ReplyKeyboardRemove(),
+            reply_markup=base_menu_reply_key(),
         )

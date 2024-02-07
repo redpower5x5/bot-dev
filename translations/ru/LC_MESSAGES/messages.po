@@ -225,7 +225,7 @@ msgid "Введи свой email в домене edu.misis.ru"
 msgstr ""
 
 #: src/bot/handlers/profile.py:131
-msgid "Введи свою учебную группу (пример: БИВТ)"
+msgid "Введи свою учебную группу (пример: БИВТ-21-1)"
 msgstr ""
 
 #: src/bot/handlers/profile.py:135
@@ -266,27 +266,27 @@ msgstr ""
 
 #: src/bot/handlers/profile.py:313
 msgid "ProfileForm cancel message"
-msgstr ""
+msgstr "Отмена ввода"
 
 #: src/bot/handlers/profile.py:342
 msgid "ProfileForm error fio state"
-msgstr ""
+msgstr "Неверный формат ФИО"
 
 #: src/bot/handlers/profile.py:362
 msgid "ProfileForm error email state"
-msgstr ""
+msgstr "Неверный формат корп. почты"
 
 #: src/bot/handlers/profile.py:393
 msgid "ProfileForm error group state"
-msgstr ""
+msgstr "Неверный формат группы"
 
 #: src/bot/handlers/profile.py:419
 msgid "ProfileForm error github state"
-msgstr ""
+msgstr "Неверный формат ссылки на репозиторий"
 
 #: src/bot/handlers/profile.py:439
 msgid "ProfileForm error profession state"
-msgstr ""
+msgstr "Неверный формат выбора"
 
 #: src/bot/handlers/profile.py:463
 msgid "Не смог открыть ссылку: {url}"
@@ -294,7 +294,7 @@ msgstr ""
 
 #: src/bot/handlers/profile.py:485
 msgid "ProfileForm error mentor state"
-msgstr ""
+msgstr "Неверный формат выбора менторства"
 
 #: src/bot/keyboards/clubs.py:18 src/bot/keyboards/coworking.py:19
 msgid "Отписаться"
@@ -306,7 +306,7 @@ msgstr ""
 
 #: src/bot/keyboards/clubs.py:31
 msgid "📢 чат клуба"
-msgstr ""
+msgstr "📢 Чат клуба"
 
 #: src/bot/keyboards/clubs.py:37 src/bot/keyboards/coworking.py:32
 #: src/bot/keyboards/coworking_admin.py:78 src/bot/keyboards/menu.py:79
