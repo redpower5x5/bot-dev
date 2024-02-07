@@ -224,7 +224,7 @@ async def profile_menu(
     user_repo: UserRepositoryBase,
 ) -> None:
 
-    msg_text = _("ProfileMenu text")
+    msg_text = get_profifle_text(tg_user)+_("ProfileMenu text")
     markup = profile_menu_keyboard()
     tg_user = await sync_profile_data(user_repo, tg_user, await state.get_data())
 
