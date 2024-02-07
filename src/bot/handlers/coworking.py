@@ -17,8 +17,9 @@ from ..keyboards.menu import (
     coworking_menu_keyboard,
     MainMenuCallback,
     CoworkingMenuCallback,
+    SubscriptionCallback,
 )
-from ..keyboards.coworking import coworking_subscription, SubscriptionCallback
+# from ..keyboards.coworking import coworking_subscription,
 from ..keyboards.coworking_admin import (
     CoworkingStatusCallback,
     coworking_admin_keyboard,
@@ -29,34 +30,39 @@ router: tp.Final[Router] = Router(name="coworking")
 
 
 @router.callback_query(MainMenuCallback.filter(F.next_menu_prefix == "coworking"))
-async def coworking_menu(callback: types.CallbackQuery, tg_user: TelegramUser) -> None:
+async def coworking_menu(
+    callback: types.CallbackQuery,
+    tg_user: TelegramUser,
+    coworking_controller: CoworkingController,
+    ) -> None:
     msg_text = _("coworking menu text")
+    subscribed = coworking_controller.is_subscribed(tg_user.tg_id)
     if callback.message:
         await callback.message.edit_text(
             msg_text,
-            reply_markup=coworking_menu_keyboard(tg_user.is_admin),
+            reply_markup=coworking_menu_keyboard(tg_user.is_admin, subscribed),
         )
     else:
         await callback.answer(
             msg_text,
-            reply_markup=coworking_menu_keyboard(tg_user.is_admin),
+            reply_markup=coworking_menu_keyboard(tg_user.is_admin, subscribed),
         )
 
 
-@router.callback_query(CoworkingMenuCallback.filter(F.action == "info"))
-async def coworking_info(callback: types.CallbackQuery, tg_user: TelegramUser) -> None:
-    msg_text = _("coworking info text")
+# @router.callback_query(CoworkingMenuCallback.filter(F.action == "info"))
+# async def coworking_info(callback: types.CallbackQuery, tg_user: TelegramUser) -> None:
+#     msg_text = _("coworking info text")
 
-    if callback.message:
-        await callback.message.edit_text(
-            msg_text,
-            reply_markup=coworking_menu_keyboard(tg_user.is_admin),
-        )
-    else:
-        await callback.answer(
-            msg_text,
-            reply_markup=coworking_menu_keyboard(tg_user.is_admin),
-        )
+#     if callback.message:
+#         await callback.message.edit_text(
+#             msg_text,
+#             reply_markup=coworking_menu_keyboard(tg_user.is_admin),
+#         )
+#     else:
+#         await callback.answer(
+#             msg_text,
+#             reply_markup=coworking_menu_keyboard(tg_user.is_admin),
+#         )
 
 
 @router.callback_query(CoworkingMenuCallback.filter(F.action == "status"))
@@ -66,6 +72,7 @@ async def coworking_status(
     coworking_controller: CoworkingController,
 ) -> None:
     status: CoworkingStatus | None = coworking_controller.get_status()
+    subscribed = coworking_controller.is_subscribed(tg_user.tg_id)
 
     if status is None:
         msg_text = _("coworking status text if status is None")
@@ -83,35 +90,35 @@ async def coworking_status(
     if callback.message:
         await callback.message.edit_text(
             msg_text,
-            reply_markup=coworking_menu_keyboard(tg_user.is_admin),
+            reply_markup=coworking_menu_keyboard(tg_user.is_admin, subscribed),
         )
     else:
         await callback.answer(
             msg_text,
-            reply_markup=coworking_menu_keyboard(tg_user.is_admin),
+            reply_markup=coworking_menu_keyboard(tg_user.is_admin, subscribed),
         )
 
 
-@router.callback_query(CoworkingMenuCallback.filter(F.action == "subscribe"))
-async def coworking_notifications(
-    callback: types.CallbackQuery,
-    tg_user: TelegramUser,
-    coworking_controller: CoworkingController,
-) -> None:
-    msg_text = _(
-        "Подписавшись на обновления тебе будут приходить уведомление о статусе коворкинга"
-    )
-    subscribed = coworking_controller.is_subscribed(tg_user.tg_id)
-    if callback.message:
-        await callback.message.edit_text(
-            msg_text,
-            reply_markup=coworking_subscription(subscribed),
-        )
-    else:
-        await callback.answer(
-            msg_text,
-            reply_markup=coworking_subscription(subscribed),
-        )
+# @router.callback_query(CoworkingMenuCallback.filter(F.action == "subscribe"))
+# async def coworking_notifications(
+#     callback: types.CallbackQuery,
+#     tg_user: TelegramUser,
+#     coworking_controller: CoworkingController,
+# ) -> None:
+#     msg_text = _(
+#         "Подписавшись на обновления тебе будут приходить уведомление о статусе коворкинга"
+#     )
+#     subscribed = coworking_controller.is_subscribed(tg_user.tg_id)
+#     if callback.message:
+#         await callback.message.edit_text(
+#             msg_text,
+#             reply_markup=coworking_subscription(subscribed),
+#         )
+#     else:
+#         await callback.answer(
+#             msg_text,
+#             reply_markup=coworking_subscription(subscribed),
+#         )
 
 
 @router.callback_query(SubscriptionCallback.filter(F.subscribed == True))
@@ -126,13 +133,13 @@ async def coworking_unsubscribe(
     if callback.message:
         await callback.message.edit_text(
             msg_text,
-            reply_markup=coworking_menu_keyboard(tg_user.is_admin),
+            reply_markup=coworking_menu_keyboard(tg_user.is_admin, False),
         )
         await callback.answer()
     else:
         await callback.answer(
             msg_text,
-            reply_markup=coworking_menu_keyboard(tg_user.is_admin),
+            reply_markup=coworking_menu_keyboard(tg_user.is_admin, False),
         )
 
 
@@ -150,13 +157,13 @@ async def coworking_subscribe(
     if callback.message:
         await callback.message.edit_text(
             msg_text,
-            reply_markup=coworking_menu_keyboard(tg_user.is_admin),
+            reply_markup=coworking_menu_keyboard(tg_user.is_admin, True),
         )
         await callback.answer()
     else:
         await callback.answer(
             msg_text,
-            reply_markup=coworking_menu_keyboard(tg_user.is_admin),
+            reply_markup=coworking_menu_keyboard(tg_user.is_admin, True),
         )
 
 

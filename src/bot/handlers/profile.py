@@ -93,12 +93,39 @@ def get_editing_text(tg_user: TelegramUser) -> str:
     else:
         return _("Профиль не заполнен(\nЧто ты хочешь отредактировать?")
 
+def get_profifle_text(tg_user: TelegramUser) -> str:
+    if tg_user.profile:
+        return _(
+            "<b>⚙️ Профиль</b>\n\n<b>ФИО:</b>\n{fio}\n<b>Почта:</b>\n{email}\n<b>Учебная группа:</b>\n{group}\n<b>Ссылка на портфолио:</b>\n{portfolio}\n<b>Направления разработки:</b>\n{majors}\n<b>Навыки/Стэк технолгий:</b>\n{skills}\n<b>Ссылки на соц. сети:</b>\n{links}\n<b>Готовность стать ментором:</b>\n{mentor}\n<b>Компания:</b>\n{company}\n\n"
+        ).format(
+            fio=tg_user.profile.fio if tg_user.profile.fio else _("Не указано"),
+            email=tg_user.profile.email if tg_user.profile.email else _("Не указано"),
+            group=tg_user.profile.educational_group
+            if tg_user.profile.educational_group
+            else _("Не указано"),
+            portfolio=tg_user.profile.portfolio_link
+            if tg_user.profile.portfolio_link
+            else _("Не указано"),
+            majors=", ".join(tg_user.profile.majors)
+            if tg_user.profile.majors
+            else _("Не указано"),
+            skills=", ".join(tg_user.profile.skills)
+            if tg_user.profile.skills
+            else _("Не указано"),
+            links=", ".join(tg_user.profile.external_links)
+            if tg_user.profile.external_links
+            else _("Не указано"),
+            mentor=_("Yes") if tg_user.profile.mentor_status else _("No"),
+            company=tg_user.profile.company if tg_user.profile.company else _("Не указано"),
+        )
+    else:
+        return _("Профиль не заполнен(\nЧто ты хочешь отредактировать?")
 
 @router.callback_query(MainMenuCallback.filter(F.next_menu_prefix == "profile"))
 async def profile_menu_callbacks(
     callback: types.CallbackQuery, tg_user: TelegramUser
 ) -> None:
-    msg_text = _("ProfileMenu text")
+    msg_text = get_profifle_text(tg_user)+_("ProfileMenu text")
 
     markup = profile_menu_keyboard(tg_user.is_admin)
     if not callback.message:

@@ -22,6 +22,9 @@ class MainMenuCallback(CallbackData, prefix="menu"):
 class CoworkingMenuCallback(CallbackData, prefix="coworking"):
     action: COWORKING_ACTIONS
 
+class SubscriptionCallback(CallbackData, prefix="coworking_subscription"):
+    subscribed: bool
+
 class ClubsMenuCallback(CallbackData, prefix="clubs"):
     club: AVALIABLE_CLUBS
 
@@ -56,24 +59,28 @@ def menu_keyboard() -> types.InlineKeyboardMarkup:
     return builder.as_markup()
 
 
-def coworking_menu_keyboard(is_admin: bool) -> types.InlineKeyboardMarkup:
+def coworking_menu_keyboard(is_admin: bool, subscribed: bool) -> types.InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.row(
-        types.InlineKeyboardButton(
-            text=_("ℹ️ Информация"),
-            callback_data=CoworkingMenuCallback(action="info").pack(),
-        ),
         types.InlineKeyboardButton(
             text=_("📝 Статус"),
             callback_data=CoworkingMenuCallback(action="status").pack(),
         ),
     )
-    builder.row(
-        types.InlineKeyboardButton(
-            text=_("✉️ Обновления"),
-            callback_data=CoworkingMenuCallback(action="subscribe").pack(),
+    if subscribed:
+        builder.row(
+            types.InlineKeyboardButton(
+                text=_("Отписаться"),
+                callback_data=SubscriptionCallback(subscribed=True).pack(),
+            )
         )
-    )
+    else:
+        builder.row(
+            types.InlineKeyboardButton(
+                text=_("Подписаться"),
+                callback_data=SubscriptionCallback(subscribed=False).pack(),
+            )
+        )
     builder.row(
         types.InlineKeyboardButton(
             text=_("↩️ Назад"),
