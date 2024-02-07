@@ -103,7 +103,7 @@ def profile_menu_keyboard(is_admin: bool = False) -> types.InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.row(
         types.InlineKeyboardButton(
-            text=_("🤷‍♂️ изменить данные"),
+            text=_("🤷‍♂️ Изменить данные"),
             callback_data=ProfileMenuCallback(action="user_form").pack(),
         ),
     )
@@ -117,7 +117,7 @@ def profile_menu_keyboard(is_admin: bool = False) -> types.InlineKeyboardMarkup:
     if is_admin:
         builder.row(
             types.InlineKeyboardButton(
-                text=_("🦺 меню администратора"),
+                text=_("🦺 Меню администратора"),
                 callback_data=ProfileMenuCallback(action="admin_menu").pack(),
             )
         )
