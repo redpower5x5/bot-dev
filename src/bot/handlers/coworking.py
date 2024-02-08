@@ -90,12 +90,12 @@ async def coworking_status(
     if callback.message:
         await callback.message.edit_text(
             msg_text,
-            reply_markup=coworking_menu_keyboard(tg_user.is_admin, subscribed),
+            reply_markup=coworking_menu_keyboard(tg_user.is_admin, subscribed, in_status=True),
         )
     else:
         await callback.answer(
             msg_text,
-            reply_markup=coworking_menu_keyboard(tg_user.is_admin, subscribed),
+            reply_markup=coworking_menu_keyboard(tg_user.is_admin, subscribed, in_status=True),
         )
 
 

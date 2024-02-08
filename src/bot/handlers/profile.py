@@ -153,7 +153,7 @@ async def process_editing(
         await state.update_data(tg_user=tg_user)
     match callback_data.field:
         case "fio":
-            msg_text = _("Введи свое фио через пробел")
+            msg_text = _("Введи свое ФИО через пробел")
             markup = editing_keyboard(next_input=True)
             await state.set_state(ProfileForm.fio)
         case "email":
@@ -404,9 +404,9 @@ async def process_profile_form_email(
 
 # TODO: move to utils
 def check_group(group: str) -> bool:
-    if len(group.split("-")) != 3:
+    if len(group.split("-")) < 3:
         return False
-    name, year, number = group.split("-")
+    name = group.split("-")[0]
 
     if not name.startswith(("Б", "М")):
         return False

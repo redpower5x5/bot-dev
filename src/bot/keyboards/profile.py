@@ -165,7 +165,7 @@ def field_selector_menu() -> types.InlineKeyboardMarkup:
     )
     builder.row(
         types.InlineKeyboardButton(
-            text=_("Навыки/Стэк технолгий"),
+            text=_("Навыки/Стэк технологий"),
             callback_data=ProfileMenuCallback(action="editing", field="skills").pack(),
         ),
     )

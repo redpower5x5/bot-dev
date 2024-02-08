@@ -62,14 +62,22 @@ def menu_keyboard() -> types.InlineKeyboardMarkup:
     return builder.as_markup()
 
 
-def coworking_menu_keyboard(is_admin: bool, subscribed: bool) -> types.InlineKeyboardMarkup:
+def coworking_menu_keyboard(is_admin: bool, subscribed: bool, in_status: bool = False) -> types.InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
-    builder.row(
-        types.InlineKeyboardButton(
-            text=_("📝 Статус"),
-            callback_data=CoworkingMenuCallback(action="status").pack(),
-        ),
-    )
+    if in_status:
+        builder.row(
+            types.InlineKeyboardButton(
+                text=_("ℹ️ О коворкинге"),
+                callback_data=MainMenuCallback(next_menu_prefix="coworking").pack(),
+            ),
+        )
+    else:
+        builder.row(
+            types.InlineKeyboardButton(
+                text=_("📝 Статус"),
+                callback_data=CoworkingMenuCallback(action="status").pack(),
+            ),
+        )
     if subscribed:
         builder.row(
             types.InlineKeyboardButton(
