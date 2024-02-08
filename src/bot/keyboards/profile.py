@@ -87,7 +87,7 @@ class ProfileMenuCallback(CallbackData, prefix="profile"):
     field: PROFILE_EDITABLE_FIELD | None = None
 
 
-class MajorCallback(CallbackData, prefix="profile_major"):
+class MajorCallback(CallbackData, prefix="prf_mjr"):
     value: str | None = None
     confirms: str | None = None
 
