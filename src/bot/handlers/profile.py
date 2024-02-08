@@ -490,7 +490,7 @@ async def process_profile_form_profession(
     # parse actions by value in callback_data
     if len(callback_data.value.split('_')) > 1:
         action, value = callback_data.value.split('_')
-        if action == "remove":
+        if action == "rm":
             confirms.remove(value)
         else:
             confirms.append(value)

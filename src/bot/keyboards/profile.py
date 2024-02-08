@@ -87,7 +87,7 @@ class ProfileMenuCallback(CallbackData, prefix="profile"):
     field: PROFILE_EDITABLE_FIELD | None = None
 
 
-class MajorCallback(CallbackData, prefix="prf_mjr"):
+class MajorCallback(CallbackData, prefix="pf_mj"):
     value: str | None = None
     confirms: str | None = None
 
@@ -223,7 +223,7 @@ def majors_keyboard(confirms: str = '') -> types.InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     for major in AVALIABLE_PROFESSIONS:
         text = f"✅ {major}" if major in confirms else major
-        value = f"add_{major}" if major not in confirms else f"remove_{major}"
+        value = f"add_{major}" if major not in confirms else f"rm_{major}"
         builder.row(
             types.InlineKeyboardButton(
                 text=text, callback_data=MajorCallback(value=value, confirms=confirms).pack()
