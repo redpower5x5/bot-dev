@@ -37,13 +37,14 @@ async def command_start_handler(
     if command.args:
         code = command.args
         try:
-            user_repo.use_invite_code(code, tg_user.tg_id)
-            await message.answer(
-                _(
-                    """Вы получили права админисратора
-почти в каждом разделе бота есть меню администратора, которое открывает функции по управлению разделом"""
+            if code != "broadcast":
+                user_repo.use_invite_code(code, tg_user.tg_id)
+                await message.answer(
+                    _(
+                        """Вы получили права админисратора
+    почти в каждом разделе бота есть меню администратора, которое открывает функции по управлению разделом"""
+                    )
                 )
-            )
         except Exception as e:
             await message.answer(_("""Упс, что-то пошло не так"""))
 
