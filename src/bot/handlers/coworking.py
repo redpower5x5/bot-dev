@@ -271,7 +271,7 @@ async def coworking_status_close(
             tg_user.tg_id,
             CoworkingStatus(
                 status=CoworkingStatus.OPEN,
-                duration=1, # test! change to callback_data.duration
+                duration=callback_data.duration,
                 responsible_mention=mention,
                 time=dt.datetime.now(),
             )
@@ -282,7 +282,7 @@ async def coworking_status_close(
         await schedule_broadcast(
             bot,
             scheduler,
-            dt.datetime.now() + dt.timedelta(minutes=1), # test! change to callback_data.duration
+            dt.datetime.now() + dt.timedelta(minutes=callback_data.duration),
             msg_text_broadcast,
             coworking_controller.get_subscribed_ids(),
         )
