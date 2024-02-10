@@ -8,6 +8,8 @@ from aiogram.enums import ParseMode
 from aiogram.utils.i18n import I18n
 
 
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+
 import psycopg2
 import dotenv
 
@@ -19,6 +21,7 @@ from .middlewares import (
     Localization,
     SettingsMiddleware,
     BotMiddleware,
+    SchedulerMiddleware,
 )
 
 
@@ -36,13 +39,15 @@ async def main() -> None:
     settings = Settings()  # type: ignore
     pg_connection = psycopg2.connect(settings.build_postgres_dsn())
 
+    scheduler = AsyncIOScheduler()
+
     user_repo = UserRepositoryPostgres(pg_connection)
     coworking_repo = CoworkingRepositoryPostgres(pg_connection)
     club_repo = ClubRepositoryPostgres(pg_connection)
     i18n = I18n(path="translations", default_locale="ru", domain="messages")
 
-    dp = Dispatcher()
     bot = Bot(settings.bot_token.get_secret_value(), parse_mode=ParseMode.HTML)
+    dp = Dispatcher()
     locale = Localization(i18n)
     locale.setup(dp)
 
@@ -52,14 +57,15 @@ async def main() -> None:
 
     dp.update.middleware(CoworkingMiddleware(user_repo, coworking_repo))
     dp.update.middleware(ClubMiddleware(user_repo, club_repo))
+    dp.update.middleware(SchedulerMiddleware(scheduler))
     dp.include_routers(common.router, coworking.router, profile.router, club.router)
 
     admins = user_repo.get_admins()
-
-    # for user_id in admins:
-    #     await bot.send_message(
-    #         chat_id=user_id,
-    #         text="Бот был перезапущен, подписки на коворкинг сброшены",
-    #     )
-
-    await dp.start_polling(bot)
+    try:
+        scheduler.start()
+        await dp.start_polling(bot)
+    finally:
+        pg_connection.close()
+        scheduler.shutdown()
+        await bot.session.close()
+        sys.exit(0)

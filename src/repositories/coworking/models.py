@@ -16,8 +16,8 @@ class CoworkingStatus:
         упоминание ответственного за коворкинг
     status : COWORKING_STATUS
         open/close
-    duration: datetime.datetime
-        время, на которое закрыт коворкинг
+    duration: int
+        время, на которое закрыт коворкинг (в минутах)
     time: datetime.datetime
         время, когда был установлен статус
     """

@@ -8,6 +8,8 @@ from aiogram.utils.i18n import gettext as _
 from controllers.coworking import CoworkingController
 from repositories.coworking.models import CoworkingStatus, COWORKING_ACTIONS
 
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+
 from repositories.users.models import TelegramUser
 
 import datetime as dt
@@ -24,7 +26,7 @@ from ..keyboards.coworking_admin import (
     CoworkingStatusCallback,
     coworking_admin_keyboard,
 )
-from utils import get_user_mention
+from utils import get_user_mention, send_broadcast, schedule_coworking_status, cancel_schedule_job, schedule_broadcast
 
 router: tp.Final[Router] = Router(name="coworking")
 
@@ -97,29 +99,6 @@ async def coworking_status(
             msg_text,
             reply_markup=coworking_menu_keyboard(tg_user.is_admin, subscribed, in_status=True),
         )
-
-
-# @router.callback_query(CoworkingMenuCallback.filter(F.action == "subscribe"))
-# async def coworking_notifications(
-#     callback: types.CallbackQuery,
-#     tg_user: TelegramUser,
-#     coworking_controller: CoworkingController,
-# ) -> None:
-#     msg_text = _(
-#         "Подписавшись на обновления тебе будут приходить уведомление о статусе коворкинга"
-#     )
-#     subscribed = coworking_controller.is_subscribed(tg_user.tg_id)
-#     if callback.message:
-#         await callback.message.edit_text(
-#             msg_text,
-#             reply_markup=coworking_subscription(subscribed),
-#         )
-#     else:
-#         await callback.answer(
-#             msg_text,
-#             reply_markup=coworking_subscription(subscribed),
-#         )
-
 
 @router.callback_query(SubscriptionCallback.filter(F.subscribed == True))
 async def coworking_unsubscribe(
@@ -269,6 +248,7 @@ async def coworking_status_close(
     tg_user: TelegramUser,
     coworking_controller: CoworkingController,
     callback_data: CoworkingStatusCallback,
+    scheduler: AsyncIOScheduler,
     bot: Bot,
 ) -> None:
 
@@ -279,14 +259,37 @@ async def coworking_status_close(
     )
     mention = get_user_mention(tg_user)
     if callback_data.duration == -1:
+        await cancel_schedule_job(scheduler, "coworking_status")
+        await cancel_schedule_job(scheduler, "coworking_status_broadcast")
         msg_text = _("🔑🔴 Коворкинг ITAM закрыт \n\nОтветственный: {mention}").format(
             mention=mention
         )
     else:
-
+        await schedule_coworking_status(
+            scheduler,
+            coworking_controller,
+            tg_user.tg_id,
+            CoworkingStatus(
+                status=CoworkingStatus.OPEN,
+                duration=1, # test! change to callback_data.duration
+                responsible_mention=mention,
+                time=dt.datetime.now(),
+            )
+        )
+        msg_text_broadcast = _("🟢 Коворкинг ITAM открыт \n\nОтветственный: {mention}").format(
+            mention=mention
+        )
+        await schedule_broadcast(
+            bot,
+            scheduler,
+            dt.datetime.now() + dt.timedelta(minutes=1), # test! change to callback_data.duration
+            msg_text_broadcast,
+            coworking_controller.get_subscribed_ids(),
+        )
         msg_text = _(
             "🔑🔴 Коворкинг ITAM закрыт на {duration} минут \n\nОтветственный: {mention}"
         ).format(duration=callback_data.duration, mention=mention)
+
     markup = coworking_admin_keyboard(CoworkingStatusCallback(action=CoworkingStatus.OPEN))
     if callback.message:
         await callback.message.edit_text(msg_text, reply_markup=markup)
@@ -298,11 +301,12 @@ async def coworking_status_close(
         )
 
     # уведомление пользователей об изменении статуса коворкинга
-    subscribed = coworking_controller.get_subscribed_ids()
-    print(subscribed)
-    for i in subscribed:
-        await asyncio.sleep(0.2)
-        await bot.send_message(i, msg_text)
+    await send_broadcast(bot, msg_text, coworking_controller.get_subscribed_ids())
+    # subscribed = coworking_controller.get_subscribed_ids()
+    # print(subscribed)
+    # for i in subscribed:
+    #     await asyncio.sleep(0.2)
+    #     await bot.send_message(i, msg_text)
     # await asyncio.gather(*[bot.send_message(u_id, msg_text) for u_id in subscribed])
 
 
@@ -312,6 +316,7 @@ async def coworking_status_open(
     tg_user: TelegramUser,
     coworking_controller: CoworkingController,
     callback_data: CoworkingStatusCallback,
+    scheduler: AsyncIOScheduler,
     bot: Bot,
 ) -> None:
 
@@ -321,6 +326,8 @@ async def coworking_status_open(
     msg_text = _("🟢 Коворкинг ITAM открыт \n\nОтветственный: {mention}").format(
         mention=mention
     )
+    await cancel_schedule_job(scheduler, "coworking_status")
+    await cancel_schedule_job(scheduler, "coworking_status_broadcast")
     markup = coworking_admin_keyboard(CoworkingStatusCallback(action=CoworkingStatus.CLOSE))
     if callback.message:
         await callback.message.edit_text(msg_text, reply_markup=markup)
@@ -332,10 +339,9 @@ async def coworking_status_open(
         )
 
     # уведомление пользователей об изменении статуса коворкинга
-    subscribed = coworking_controller.get_subscribed_ids()
-    print(subscribed)
-    print(subscribed)
-    for i in subscribed:
-        await asyncio.sleep(0.2)
-        await bot.send_message(i, msg_text)
+    await send_broadcast(bot, msg_text, coworking_controller.get_subscribed_ids())
+    # subscribed = coworking_controller.get_subscribed_ids()
+    # for i in subscribed:
+    #     await asyncio.sleep(0.2)
+    #     await bot.send_message(i, msg_text)
     # await asyncio.gather(*[bot.send_message(u_id, msg_text) for u_id in subscribed])

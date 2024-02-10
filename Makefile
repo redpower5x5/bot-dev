@@ -16,12 +16,25 @@ i18n-compile:
 prod-build:
 	docker compose -f docker/docker-compose-prod.yaml up -d --build
 
+.PHONY: prod-logs
+prod-logs:
+	docker compose -f docker/docker-compose-dev.yaml logs -f
+
 .PHONY: dev-db
 dev-db:
-	docker compose -f docker/docker-compose-dev.yaml up -d postgres
-.PHONY: logs
-logs:
-	docker compose -f docker/docker-compose.yaml logs -f
+	docker compose -f docker/docker-compose-dev.yaml up -d postgres redis
+
+.PHONY: dev-build
+dev-build:
+	docker compose -f docker/docker-compose-dev.yaml up -d --build
+
+.PHONY: dev-logs
+dev-logs:
+	docker compose -f docker/docker-compose-dev.yaml logs -f
+
+.PHONY: dev-down
+dev-down:
+	docker compose -f docker/docker-compose-dev.yaml down
 
 .PHONY: run
 run:

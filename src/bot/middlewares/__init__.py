@@ -4,6 +4,7 @@ from .coworking_controller import CoworkingMiddleware
 from .settings import SettingsMiddleware
 from .bot import BotMiddleware
 from .club_controller import ClubMiddleware
+from .scheduler import SchedulerMiddleware
 
 __all__ = [
     "UserMiddleware",
@@ -12,4 +13,5 @@ __all__ = [
     "SettingsMiddleware",
     "BotMiddleware",
     "ClubMiddleware",
+    "SchedulerMiddleware",
 ]
