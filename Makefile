@@ -18,7 +18,7 @@ prod-build:
 
 .PHONY: prod-logs
 prod-logs:
-	docker compose -f docker/docker-compose-dev.yaml logs -f
+	docker compose -f docker/docker-compose-prod.yaml logs -f
 
 .PHONY: dev-db
 dev-db:
