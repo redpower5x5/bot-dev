@@ -35,7 +35,7 @@ services:
         - ../.env
       environment:
         - "POSTGRES_HOST=postgres"
-        - TZ: 'GMT+3'
+        - "TZ=GMT+3"
       volumes:
         - .:/app
       command: python3 src/main.py
