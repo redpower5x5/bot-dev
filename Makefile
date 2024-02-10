@@ -12,9 +12,16 @@ i18n:
 i18n-compile:
 	pybabel compile -d $(translations_dir) -D messages
 
-.PHONY: dev
-dev:
-	docker compose -f docker/docker-compose.yaml up -d --build
+.PHONY: prod-build
+prod-build:
+	docker compose -f docker/docker-compose-prod.yaml up -d --build
+
+.PHONY: dev-db
+dev-db:
+	docker compose -f docker/docker-compose-dev.yaml up -d postgres
+.PHONY: logs
+logs:
+	docker compose -f docker/docker-compose.yaml logs -f
 
 .PHONY: run
 run:

@@ -45,17 +45,29 @@ PROFILE_EDITABLE_FIELD = tp.Literal[
 ]
 
 
-AVALIABLE_PROFESSIONS = [
-    "Fullstack",
-    "Backend",
-    "Frontend",
-    "GameDev",
-    "Mobile",
-    "DevOps",
-    "ML Engineer",
-    "UI/UX Designer",
-    "Project Manager",
-]
+# AVALIABLE_PROFESSIONS = [
+#     "Fullstack",
+#     "Backend",
+#     "Frontend",
+#     "GameDev",
+#     "Mobile",
+#     "DevOps",
+#     "ML Engineer",
+#     "UI/UX Designer",
+#     "Project Manager",
+# ]
+
+AVALIABLE_PROFESSIONS = {
+    "Flstk": "Fullstack",
+    "Bd": "Backend",
+    "Fd": "Frontend",
+    "Gdv": "GameDev",
+    "Mob": "Mobile",
+    "DO": "DevOps",
+    "ML": "ML Engineer",
+    "UI": "UI/UX Designer",
+    "PM":"Project Manager",
+}
 
 
 class ProfileMenuCallback(CallbackData, prefix="profile"):
@@ -221,9 +233,9 @@ def editing_keyboard(next_input: bool = False) -> types.InlineKeyboardMarkup:
 
 def majors_keyboard(confirms: str = '') -> types.InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
-    for major in AVALIABLE_PROFESSIONS:
-        text = f"✅ {major}" if major in confirms else major
-        value = f"add_{major}" if major not in confirms else f"rm_{major}"
+    for key, major in AVALIABLE_PROFESSIONS.items():
+        text = f"✅ {major}" if key in confirms else major
+        value = f"add_{key}" if key not in confirms else f"rm_{key}"
         builder.row(
             types.InlineKeyboardButton(
                 text=text, callback_data=MajorCallback(value=value, confirms=confirms).pack()

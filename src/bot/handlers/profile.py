@@ -172,7 +172,7 @@ async def process_editing(
             await state.set_state(ProfileForm.portfolio_link)
         case "majors":
             msg_text = _("Выбери направления разработки, в которых ты специализируешься")
-            markup = majors_keyboard(','.join(tg_user.profile.majors) if tg_user.profile.majors else '')
+            markup = majors_keyboard(','.join([key for key, value in AVALIABLE_PROFESSIONS.items() if value in tg_user.profile.majors]) if tg_user.profile.majors else '')
             await state.set_state(ProfileForm.majors)
         case "skills":
             msg_text = _("Выбери стек технологий с которымы ты хорошо знаком")
@@ -224,9 +224,9 @@ async def profile_menu(
     user_repo: UserRepositoryBase,
 ) -> None:
 
-    msg_text = get_profifle_text(tg_user)+_("ProfileMenu text")
     markup = profile_menu_keyboard(tg_user.is_admin)
     tg_user = await sync_profile_data(user_repo, tg_user, await state.get_data())
+    msg_text = get_profifle_text(tg_user)+_("ProfileMenu text")
 
     if callback.message:
         await callback.message.edit_text(msg_text, reply_markup=markup)
@@ -498,7 +498,9 @@ async def process_profile_form_profession(
         confirms = ",".join(confirms)
         await callback.message.edit_reply_markup(inline_message_id=callback.inline_message_id, reply_markup=majors_keyboard(confirms))
     else:
-        data["tg_user"].profile.majors = confirms
+        # extracct values from enum by name in confirms
+        selections = [AVALIABLE_PROFESSIONS[major] for major in confirms]
+        data["tg_user"].profile.majors = selections
         await state.set_data(data)
 
         await state.set_state(ProfileForm.editing)
@@ -548,27 +550,6 @@ async def process_profile_external_links(
                 url=message.text, reply_markup=field_selector_menu()
             )
         )
-
-
-# @router.message(ProfileForm.mentor_status)
-# async def process_profile_form_mentor(
-#     message: types.Message, state: FSMContext
-# ) -> None:
-#     # TODO: inline buttons
-#     if message.text and message.text.lower() in [_("Yes").lower(), _("No").lower()]:
-#         data = await state.get_data()
-#         data["tg_user"].profile.mentor_status = message.text.lower() == _("Yes").lower()
-#         await state.set_data(data)
-
-#         await state.set_state(ProfileForm.editing)
-
-#         msg_text = get_editing_text(data["tg_user"])
-#         await message.answer(msg_text, reply_markup=field_selector_menu())
-#     else:
-#         await message.answer(
-#             _("ProfileForm error mentor state"),
-#             reply_markup=base_menu_reply_key(),
-#         )
 
 @router.callback_query(MentorStatusCallback.filter())
 async def process_mentor_status(
