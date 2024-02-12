@@ -4,6 +4,8 @@ from aiogram import Bot, types, Router, F
 
 from aiogram.filters import and_f
 from aiogram.utils.i18n import gettext as _
+from aiogram.fsm.state import StatesGroup, State
+from aiogram.fsm.context import FSMContext
 
 from controllers.coworking import CoworkingController
 from repositories.coworking.models import CoworkingStatus, COWORKING_ACTIONS
@@ -25,11 +27,17 @@ from ..keyboards.menu import (
 from ..keyboards.coworking_admin import (
     CoworkingStatusCallback,
     coworking_admin_keyboard,
+    coworking_admin_input_duration_keyboard,
 )
 from utils import get_user_mention, send_broadcast, schedule_coworking_status, cancel_schedule_job, schedule_broadcast
 
 router: tp.Final[Router] = Router(name="coworking")
 
+class CoworkingStatusState(StatesGroup):
+    duration = State()
+
+class OverTimeDuration(Exception):
+    pass
 
 @router.callback_query(MainMenuCallback.filter(F.next_menu_prefix == "coworking"))
 async def coworking_menu(
@@ -151,7 +159,12 @@ async def coworking_admin_menu(
     callback: types.CallbackQuery,
     coworking_controller: CoworkingController,
     tg_user: TelegramUser,
+    state: FSMContext,
     ) -> None:
+    # finish if state is not finished
+    current_state = await state.get_state()
+    if current_state is not None:
+        await state.clear()
     msg_text = _("coworking admin menu text")
     status = coworking_controller.get_status()
     gain_control = status.responsible_mention != get_user_mention(tg_user)
@@ -216,26 +229,74 @@ async def coworking_status_gain_control(
         )
 
 
+# @router.callback_query(
+#     and_f(
+#         CoworkingStatusCallback.filter(F.action == CoworkingStatus.CLOSE),
+#         CoworkingStatusCallback.filter(F.duration == None),
+#     )
+# )
+# async def coworking_status_duration_selector(
+#     callback: types.CallbackQuery,
+#     callback_data: CoworkingStatusCallback,
+# ) -> None:
+#     msg_text = _("Coworking admin status close durations selection")
+#     markup = coworking_admin_keyboard(callback_data)
+#     if callback.message:
+#         await callback.message.edit_text(msg_text, reply_markup=markup)
+#         await callback.answer()
+#     else:
+#         await callback.answer(
+#             msg_text,
+#             reply_markup=markup,
+#         )
+
 @router.callback_query(
-    and_f(
-        CoworkingStatusCallback.filter(F.action == CoworkingStatus.CLOSE),
-        CoworkingStatusCallback.filter(F.duration == None),
+    CoworkingStatusCallback.filter(
+        F.action == CoworkingStatus.CLOSE and F.input_duration == True
     )
 )
-async def coworking_status_duration_selector(
+async def coworking_status_duration_input(
     callback: types.CallbackQuery,
     callback_data: CoworkingStatusCallback,
+    state: FSMContext,
 ) -> None:
-    msg_text = _("Coworking admin status close durations selection")
-    markup = coworking_admin_keyboard(callback_data)
+    msg_text = _("Введите время в минутах")
+    await state.set_state(CoworkingStatusState.duration)
+    markup = coworking_admin_input_duration_keyboard()
     if callback.message:
         await callback.message.edit_text(msg_text, reply_markup=markup)
         await callback.answer()
     else:
-        await callback.answer(
-            msg_text,
-            reply_markup=markup,
-        )
+        await callback.answer(msg_text, reply_markup=markup)
+
+@router.message(CoworkingStatusState.duration)
+async def coworking_status_duration_input_handler(
+    message: types.Message,
+    tg_user: TelegramUser,
+    coworking_controller: CoworkingController,
+    scheduler: AsyncIOScheduler,
+    bot: Bot,
+    state: FSMContext,
+) -> None:
+    try:
+        duration = int(message.text)
+        if dt.datetime.now() + dt.timedelta(minutes=duration) > dt.datetime.now().replace(hour=20, minute=0):
+            raise OverTimeDuration("closed_over_8PM")
+    except ValueError:
+        await message.answer(_("Введите валидное число"), reply_markup=coworking_admin_input_duration_keyboard())
+        return
+    except OverTimeDuration:
+        await message.answer(_("Открытие коворкинга должно произойти до 20:00"), reply_markup=coworking_admin_input_duration_keyboard())
+        return
+    await state.clear()
+    await coworking_status_close(
+        message,
+        tg_user,
+        coworking_controller,
+        CoworkingStatusCallback(action=CoworkingStatus.CLOSE, duration=duration),
+        scheduler,
+        bot,
+    )
 
 
 @router.callback_query(
@@ -291,7 +352,7 @@ async def coworking_status_close(
         ).format(duration=callback_data.duration, mention=mention)
 
     markup = coworking_admin_keyboard(CoworkingStatusCallback(action=CoworkingStatus.OPEN))
-    if callback.message:
+    if isinstance(callback, types.CallbackQuery) and callback.message:
         await callback.message.edit_text(msg_text, reply_markup=markup)
         await callback.answer()
     else:
