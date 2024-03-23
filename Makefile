@@ -12,6 +12,11 @@ i18n:
 i18n-compile:
 	pybabel compile -d $(translations_dir) -D messages
 
+.PHONY: i18n-update
+i18n-update:
+	pybabel extract --input-dirs='$(bot_dir)' -o '$(translations_dir)/messages.pot'
+	pybabel update -i $(translations_dir)/messages.pot -d $(translations_dir) -D messages
+
 .PHONY: prod-build
 prod-build:
 	docker compose -f docker/docker-compose-prod.yaml up -d --build

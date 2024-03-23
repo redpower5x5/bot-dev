@@ -54,14 +54,14 @@ async def clubs_info(
         await callback.message.edit_text(
             msg_text,
             reply_markup=club_subscription_and_info(
-                 subscribed, club, club_info.link
+                 subscribed, club, club_info.link, club_info.additional_links
             ),
         )
     else:
         await callback.answer(
             msg_text,
             reply_markup=club_subscription_and_info(
-                 subscribed, club, club_info.link
+                 subscribed, club, club_info.link, club_info.additional_links
             ),
         )
 
@@ -84,13 +84,13 @@ async def club_subscription(
         await callback.message.edit_text(
             msg_text,
             reply_markup=club_subscription_and_info(
-                 subscribed, club, club_info.link
+                 subscribed, club, club_info.link, club_info.additional_links
             ),
         )
     else:
         await callback.answer(
             msg_text,
             reply_markup=club_subscription_and_info(
-                 subscribed, club, club_info.link
+                 subscribed, club, club_info.link, club_info.additional_links
             ),
         )

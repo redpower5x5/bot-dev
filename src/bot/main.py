@@ -25,7 +25,7 @@ from .middlewares import (
 )
 
 
-from .handlers import common, coworking, profile, club
+from .handlers import common, coworking, profile, club, itam
 
 from repositories.coworking import CoworkingRepositoryPostgres
 from repositories.club import ClubRepositoryPostgres
@@ -58,7 +58,7 @@ async def main() -> None:
     dp.update.middleware(CoworkingMiddleware(user_repo, coworking_repo))
     dp.update.middleware(ClubMiddleware(user_repo, club_repo))
     dp.update.middleware(SchedulerMiddleware(scheduler))
-    dp.include_routers(common.router, coworking.router, profile.router, club.router)
+    dp.include_routers(common.router, coworking.router, profile.router, club.router, itam.router)
 
     admins = user_repo.get_admins()
     try:

@@ -33,7 +33,8 @@ create table if not exists subscriptions(
     design_club boolean default false,
     gamedev_club boolean default false,
     ai_club boolean default false,
-    robot_club boolean default false
+    robot_club boolean default false,
+    itam_digest boolean default false
 );
 create table if not exists clubs(
     id serial primary key,

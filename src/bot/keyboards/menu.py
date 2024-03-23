@@ -10,7 +10,7 @@ COWORKING_ACTIONS = tp.Literal[
     "info", "status", "subscribe", "unsubscribe", "admin_menu"
 ]
 
-AVALIABLE_MENUS = tp.Literal["menu", "coworking", "profile", "help", "clubs"]
+AVALIABLE_MENUS = tp.Literal["menu", "coworking", "profile", "help", "clubs", "ITAM"]
 
 AVALIABLE_CLUBS = tp.Literal["hack_club", "design_club", "gamedev_club", "ai_club", "robot_club"]
 
@@ -38,6 +38,12 @@ def menu_keyboard() -> types.InlineKeyboardMarkup:
         types.InlineKeyboardButton(
             text=_("👥 Коворкинг"),
             callback_data=MainMenuCallback(next_menu_prefix="coworking").pack(),
+        ),
+    )
+    builder.row(
+        types.InlineKeyboardButton(
+            text=_("🤍 ITAM"),
+            callback_data=MainMenuCallback(next_menu_prefix="ITAM").pack(),
         ),
     )
     builder.row(

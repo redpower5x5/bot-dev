@@ -2,7 +2,8 @@ import psycopg2
 import typing as tp
 import datetime as dt
 from .base import ClubRepositoryBase
-from .models import ClubInfo
+from .models import ClubInfo, ButtonLinks
+import psycopg2.extensions
 
 class ClubRepositoryPostgres(ClubRepositoryBase):
     def __init__(self, connection: psycopg2.extensions.connection) -> None:
@@ -12,18 +13,27 @@ class ClubRepositoryPostgres(ClubRepositoryBase):
         cur = self.conn.cursor()
         cur.execute(
             """
-            select name, description, chat_link from clubs where name = %s;
+            select id, name, description, chat_link from clubs where name = %s;
             """,
             (club,),
         )
         result = cur.fetchone()
+        # get addtionall links from other table by id of club
         if result is None:
+            cur.close()
             return None
+        club_id, key_name, description, link = result
+        cur.execute(
+            """
+            select button_name, link from clubs_additional_links where club_id = %s;
+            """,
+            (club_id,),
+        )
+        additional_links = cur.fetchall()
         cur.close()
-        key_name, description, link = result
-        return ClubInfo(key_name, description, link)
+        additional_links = [ButtonLinks(row[0], row[1]) for row in additional_links]
+        return ClubInfo(key_name, description, link, additional_links)
 
-    import psycopg2.extensions
 
     def set_club_notifications(self, tg_id: int, subscribed: bool, club: str) -> None:
         cur = self.conn.cursor()

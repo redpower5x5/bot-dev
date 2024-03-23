@@ -2,6 +2,7 @@ import typing as tp
 from aiogram import types
 
 from .menu import MainMenuCallback
+from repositories.club.models import ClubInfo, ButtonLinks
 from aiogram.filters.callback_data import CallbackData
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.utils.i18n import gettext as _
@@ -10,7 +11,7 @@ class SubscriptionCallback(CallbackData, prefix="club_subscription"):
     subscribed: bool
     club: str
 
-def club_subscription_and_info(subscribed: bool, club: str, club_link: str) -> types.InlineKeyboardMarkup:
+def club_subscription_and_info(subscribed: bool, club: str, club_link: str, additional_links: tp.List[ButtonLinks]) -> types.InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     if subscribed:
         builder.row(
@@ -32,6 +33,13 @@ def club_subscription_and_info(subscribed: bool, club: str, club_link: str) -> t
             url=club_link
         )
     )
+    for additional_link in additional_links:
+        builder.row(
+            types.InlineKeyboardButton(
+                text=additional_link.button_text,
+                url=additional_link.link
+            )
+        )
     builder.row(
         types.InlineKeyboardButton(
             text=_("↩️ Назад"),
