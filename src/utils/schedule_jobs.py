@@ -21,7 +21,7 @@ async def schedule_autoclose_coworking(
         tg_user: TelegramUser) -> None:
     """
     Schedule autoclose coworking at 10:00 PM"""
-    execute_time = dt.now().replace(hour=17, minute=52, second=0, microsecond=0)
+    execute_time = dt.now().replace(hour=22, minute=0, second=0, microsecond=0)
     try:
         scheduler.add_job(
             coworking_controller.set_status,
