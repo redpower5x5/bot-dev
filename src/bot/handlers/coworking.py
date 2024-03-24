@@ -29,7 +29,15 @@ from ..keyboards.coworking_admin import (
     coworking_admin_keyboard,
     coworking_admin_input_duration_keyboard,
 )
-from utils import get_user_mention, send_broadcast, schedule_coworking_status, cancel_schedule_job, schedule_broadcast
+from utils import (
+    get_user_mention,
+    send_broadcast,
+    schedule_coworking_status,
+    cancel_schedule_job,
+    schedule_coworking_status_broadcast,
+    schedule_autoclose_coworking,
+    cancel_autoclose_coworking
+    )
 
 router: tp.Final[Router] = Router(name="coworking")
 
@@ -211,9 +219,13 @@ async def coworking_status_gain_control(
     callback: types.CallbackQuery,
     tg_user: TelegramUser,
     coworking_controller: CoworkingController,
+    scheduler: AsyncIOScheduler,
+    bot: Bot,
 ) -> None:
     coworking_controller.set_status(tg_user.tg_id, CoworkingStatus.OPEN)  # type: ignore проверено в фильтре
     mention = get_user_mention(tg_user)
+    # reasssign autoclose
+    await schedule_autoclose_coworking(bot, scheduler, coworking_controller, tg_user)
 
     msg_text = _("<b>Теперь вы отвественный за коворкинг</b>\n🟢 Коворкинг ITAM открыт \n\nОтветственный: {mention}").format(
         mention=mention
@@ -289,6 +301,7 @@ async def coworking_status_duration_input_handler(
         await message.answer(_("Открытие коворкинга должно произойти до 20:00"), reply_markup=coworking_admin_input_duration_keyboard())
         return
     await state.clear()
+    # call existing handler with duration
     await coworking_status_close(
         message,
         tg_user,
@@ -320,8 +333,11 @@ async def coworking_status_close(
     )
     mention = get_user_mention(tg_user)
     if callback_data.duration == -1:
+        # cancel all scheduled jobs
         await cancel_schedule_job(scheduler, "coworking_status")
         await cancel_schedule_job(scheduler, "coworking_status_broadcast")
+        await cancel_autoclose_coworking(scheduler)
+
         msg_text = _("🔑🔴 Коворкинг ITAM закрыт \n\nОтветственный: {mention}").format(
             mention=mention
         )
@@ -340,7 +356,7 @@ async def coworking_status_close(
         msg_text_broadcast = _("🟢 Коворкинг ITAM открыт \n\nОтветственный: {mention}").format(
             mention=mention
         )
-        await schedule_broadcast(
+        await schedule_coworking_status_broadcast(
             bot,
             scheduler,
             dt.datetime.now() + dt.timedelta(minutes=callback_data.duration),
@@ -389,6 +405,8 @@ async def coworking_status_open(
     )
     await cancel_schedule_job(scheduler, "coworking_status")
     await cancel_schedule_job(scheduler, "coworking_status_broadcast")
+    # schedule autoclose
+    await schedule_autoclose_coworking(bot, scheduler, coworking_controller, tg_user)
     markup = coworking_admin_keyboard(CoworkingStatusCallback(action=CoworkingStatus.CLOSE))
     if callback.message:
         await callback.message.edit_text(msg_text, reply_markup=markup)

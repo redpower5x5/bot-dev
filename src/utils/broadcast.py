@@ -42,7 +42,7 @@ async def send_broadcast(bot: Bot, message: str, users: tp.List[int], disable_no
     finally:
         log.info(f"{count} messages successful sent.")
 
-async def schedule_broadcast(
+async def schedule_coworking_status_broadcast(
         bot: Bot,
         scheduler: AsyncIOScheduler,
         date_time_exec: dt,
@@ -69,3 +69,33 @@ async def schedule_broadcast(
         replace_existing=True,
     )
     log.info("Broadcast finished.")
+
+async def schedule_custom_broadcast(
+        bot: Bot,
+        scheduler: AsyncIOScheduler,
+        date_time_exec: dt,
+        message: str,
+        users: tp.List[int],
+        schedule_id: str,
+        disable_notification: bool = False) -> None:
+    """
+    Schedule custom broadcast
+
+    :param bot:
+    :param scheduler:
+    :param date_time_exec:
+    :param message:
+    :param users:
+    :param schedule_id:
+    :param disable_notification:
+    :return:
+    """
+    scheduler.add_job(
+        send_broadcast,
+        args=[bot, message, users, disable_notification],
+        trigger="date",
+        run_date=date_time_exec,
+        id=schedule_id,
+        replace_existing=True,
+    )
+    log.info(f"Broadcast {schedule_id} finished.")
