@@ -2,6 +2,7 @@ import typing as tp
 from aiogram import types
 
 from .menu import MainMenuCallback
+from .broadcast import BroadcastCallback
 from aiogram.filters.callback_data import CallbackData
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.utils.i18n import gettext as _
@@ -16,7 +17,7 @@ class DigestMenuCallback(CallbackData, prefix="digest"):
 class ITAMMenuCallback(CallbackData, prefix="itam"):
     action: str
 
-def itam_menu(in_contacts: bool = False) -> types.InlineKeyboardMarkup:
+def itam_menu(in_contacts: bool = False, is_admin: bool = False) -> types.InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.row(
         types.InlineKeyboardButton(
@@ -44,6 +45,13 @@ def itam_menu(in_contacts: bool = False) -> types.InlineKeyboardMarkup:
             callback_data=ITAMMenuCallback(action="contacts").pack(),
         ),
     )
+    if is_admin:
+        builder.row(
+            types.InlineKeyboardButton(
+                text=_("📢 Рассылка всем пользователям"),
+                callback_data=BroadcastCallback(action="menu", auditory="all").pack(),
+            ),
+        )
     builder.row(
         types.InlineKeyboardButton(
             text=_("↩️ Назад"),

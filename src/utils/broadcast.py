@@ -6,6 +6,7 @@ import logging
 from datetime import datetime as dt
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.job import Job
 from apscheduler.jobstores.base import JobLookupError
 
 log = logging.getLogger(__name__)
@@ -99,3 +100,17 @@ async def schedule_custom_broadcast(
         replace_existing=True,
     )
     log.info(f"Broadcast {schedule_id} finished.")
+
+def get_all_jobs(scheduler: AsyncIOScheduler, prefix: str) -> tp.Dict[str, dt]:
+    """
+    Get all jobs
+
+    :param scheduler: AsyncIOScheduler
+    :param prefix: str prefix of jobs to filter
+    :return: dict of jobs {job_id: date_time_exec}
+    """
+    jobs = {}
+    for job in scheduler.get_jobs():
+        if job.id.startswith(prefix):
+            jobs[job.id] = job.next_run_time
+    return jobs

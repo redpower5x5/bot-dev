@@ -1,8 +1,10 @@
 import psycopg2
 import typing as tp
 import datetime as dt
+
+import psycopg2.sql
 from .base import UserRepositoryBase
-from .models import TelegramUser, UserProfile
+from .models import TelegramUser, UserProfile, AdminRights
 
 
 class UserRepositoryPostgres(UserRepositoryBase):
@@ -13,6 +15,8 @@ class UserRepositoryPostgres(UserRepositoryBase):
         self, tg_id: int, include_profile: bool = False
     ) -> TelegramUser | None:
         cur = self.conn.cursor()
+        # get admin rights if user is admin
+        admin_rights = AdminRights(right_model={})
         #  select user data if include_profile is True select profile data too
         if include_profile:
             cur.execute(
@@ -61,7 +65,10 @@ class UserRepositoryPostgres(UserRepositoryBase):
                 mentor_status,
                 company,
             ) = result
-
+            # get admin rights
+            if is_admin:
+                admin_rights = self.get_user_admin_rights(tg_id)
+            cur.close()
             return TelegramUser(
                 tg_id=tg_id,
                 first_name=first_name,
@@ -81,6 +88,8 @@ class UserRepositoryPostgres(UserRepositoryBase):
                     mentor_status=mentor_status,
                     company=company,
                 ),
+
+                admin_rights=admin_rights,
             )
         # select only user data
         else:
@@ -111,6 +120,8 @@ class UserRepositoryPostgres(UserRepositoryBase):
             language_code,
             is_admin,
         ) = result
+        if is_admin:
+            admin_rights = self.get_user_admin_rights(tg_id)
         cur.close()
         return TelegramUser(
             tg_id=tg_id,
@@ -120,7 +131,26 @@ class UserRepositoryPostgres(UserRepositoryBase):
             is_premium=is_premium,
             language_code=language_code,
             is_admin=is_admin,
+            admin_rights=admin_rights,
         )
+
+    def get_user_admin_rights(self, tg_id: int) -> AdminRights:
+        cur = self.conn.cursor()
+        cur.execute(
+            """
+            SELECT ar.name AS admin_rights, ar.id as right_id
+            FROM telegram_users u
+            JOIN admin_rights_users uar ON u.id = uar.user_id
+            JOIN admin_rights ar ON uar.right_id = ar.id
+            WHERE u.id = %s;
+            """,
+            (tg_id,),
+        )
+        result = cur.fetchall()
+        cur.close()
+        if not result:
+            return AdminRights(right_model={})
+        return AdminRights(right_model={row[1]: row[0] for row in result})
 
     def get_users(self, limit: int = 10, offset: int = 0) -> list[TelegramUser]:
         cur = self.conn.cursor()
@@ -282,14 +312,14 @@ class UserRepositoryPostgres(UserRepositoryBase):
         cur.close()
         return [row[0] for row in result]
 
-    def create_invite_code(self, code: str, admin_id: int) -> None:
+    def create_invite_code(self, code: str, admin_id: int, rights_ids: list) -> None:
         # insert into admin_invite_codes(code, admin_id) values ('testcode', 499114263);
         cur = self.conn.cursor()
         cur.execute(
             """
-                    insert into admin_invite_codes(admin_id, code) values (%s, %s)
+                    insert into admin_invite_codes(admin_id, code, rights_ids) values (%s, %s, %s)
                     """,
-            (admin_id, code),
+            (admin_id, code, rights_ids),
         )
 
         self.conn.commit()
@@ -301,7 +331,7 @@ class UserRepositoryPostgres(UserRepositoryBase):
         cur = self.conn.cursor()
         cur.execute(
             """
-            select id, admin_id, user_id, created_at, activated_at from admin_invite_codes where code = %s;
+            select id, admin_id, user_id, rights_ids, created_at, activated_at from admin_invite_codes where code = %s;
             """,
             (code,),
         )
@@ -309,7 +339,7 @@ class UserRepositoryPostgres(UserRepositoryBase):
 
         if result is None:
             raise ValueError
-        code_id, admin_id, used_by, created_at, activated_at = result
+        code_id, admin_id, used_by, rights_ids, created_at, activated_at = result
         if activated_at != None:
             raise Exception(f"Code already activated by {used_by}")
 
@@ -328,6 +358,15 @@ class UserRepositoryPostgres(UserRepositoryBase):
             """,
             (user_id,),
         )
+        self.conn.commit()
+        # set user rights
+        for right_id in rights_ids:
+            cur.execute(
+                """
+                insert into admin_rights_users(user_id, right_id) values (%s, %s);
+                """,
+                (user_id, right_id),
+            )
         self.conn.commit()
         cur.execute(
             """select admin_id from admin_invite_codes where code = %s;""", (code,)
@@ -422,5 +461,26 @@ class UserRepositoryPostgres(UserRepositoryBase):
             )
         self.conn.commit()
         cur.close()
+
+    def get_broadcast_users(self, auditory: str) -> list[int]:
+        cur = self.conn.cursor()
+        if auditory == "all":
+            cur.execute(
+                """
+                select id
+                from subscriptions;
+                """
+            )
+        else:
+            cur.execute(
+                f"""
+                    select id
+                    from subscriptions
+                    where {auditory} = true;
+                """
+            )
+        result = cur.fetchall()
+        cur.close()
+        return [row[0] for row in result]
 
 

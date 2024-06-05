@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from .models import TelegramUser
+from .models import TelegramUser, AdminRights
 
 
 class UserRepositoryBase(ABC):
@@ -16,6 +16,18 @@ class UserRepositoryBase(ABC):
 
         Returns:
             TelegramUser | None: Данные пользователя
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_user_admin_rights(self, tg_id: int) -> AdminRights | None:
+        """Получение прав администратора пользователя
+
+        Args:
+            tg_id (int): id пользователя в телеграме
+
+        Returns:
+            AdminRights | None: права администратора
         """
         raise NotImplementedError
 
@@ -67,12 +79,13 @@ class UserRepositoryBase(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def create_invite_code(self, code: str, admin_id: int) -> None:
+    def create_invite_code(self, code: str, admin_id: int, rights_ids: list) -> None:
         """Сохранение кода для активации получения прав администратора
 
         Args:
             code (str): код для активации прав администратора
             admin_id (int): id создателя кода
+            rights_ids (list): лист id прав администратора
         """
         raise NotImplementedError
 
@@ -107,4 +120,8 @@ class UserRepositoryBase(ABC):
         company: str | None = None,
     ) -> None:
         """Обновления дополнительной ифнормации профиля"""
-        raise NotImplemented
+        raise NotImplementedError
+
+    def get_broadcast_users(self, auditory: str) -> list[int]:
+        """Получение списка подписчиков для рассылки"""
+        raise NotImplementedError

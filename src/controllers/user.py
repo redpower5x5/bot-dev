@@ -3,7 +3,7 @@ import datetime as dt
 from repositories.coworking import CoworkingRepositoryBase
 from repositories.coworking.models import CoworkingStatus
 from repositories.users import UserRepositoryBase
-from repositories.users.models import TelegramUser
+from repositories.users.models import TelegramUser, AdminRights
 
 
 class UserController:
@@ -20,6 +20,9 @@ class UserController:
         raise NotImplementedError
 
     async def get_users(self, limit: int = 10, offset: int = 0) -> list[TelegramUser]:
+        raise NotImplementedError
+
+    async def get_user_admin_rights(self, tg_id: int) -> AdminRights | None:
         raise NotImplementedError
 
     async def save_profile_data(
@@ -40,6 +43,9 @@ class UserController:
     async def get_user(
         self, tg_id: int, include_profile: bool = False
     ) -> TelegramUser | None:
+        raise NotImplementedError
+
+    async def get_broadcast_users(self, auditory: str) -> list[int]:
         raise NotImplementedError
 
     # async def

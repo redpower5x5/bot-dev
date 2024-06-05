@@ -66,6 +66,7 @@ AVALIABLE_PROFESSIONS = {
     "DO": "DevOps",
     "ML": "ML Engineer",
     "UI": "UI/UX Designer",
+    "CD": "Communication Design",
     "PM":"Project Manager",
 }
 
@@ -110,6 +111,9 @@ class MentorStatusCallback(CallbackData, prefix="mentor_status"):
 class ProfileAdminMenuCallback(CallbackData, prefix="profile_admin"):
     action: ADMIN_PROFILE_ACTIONS
 
+class AddAdminCallback(CallbackData, prefix="add_admin"):
+    value: str | None = None
+    confirms: str | None = None
 
 def profile_menu_keyboard(is_admin: bool = False) -> types.InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
@@ -279,7 +283,7 @@ def mentor_status_keyboard() -> types.InlineKeyboardMarkup:
     return builder.as_markup()
 
 
-def admin_menu_keyboard() -> types.InlineKeyboardMarkup:
+def admin_menu_keyboard(is_admin: bool) -> types.InlineKeyboardMarkup:
     """
     2. Администраторский:
     1. Аналогичные пользовательскому
@@ -288,13 +292,13 @@ def admin_menu_keyboard() -> types.InlineKeyboardMarkup:
     4. Присвоить пользователю статус — позволяет админу присвоить уровень навыков пользователя. Предполагаемые статусы Intern, Junior, Middle, Senior. Они отображают суммарный уровень владения навыками по направлению
     """
     builder = InlineKeyboardBuilder()
-
-    builder.row(
-        types.InlineKeyboardButton(
-            text=_("Экспортировать"),
-            callback_data=ProfileAdminMenuCallback(action="export").pack(),
+    if is_admin:
+        builder.row(
+            types.InlineKeyboardButton(
+                text=_("Экспортировать"),
+                callback_data=ProfileAdminMenuCallback(action="export").pack(),
+            )
         )
-    )
     builder.row(
         types.InlineKeyboardButton(
             text=_("Добавить админа"),
@@ -307,4 +311,34 @@ def admin_menu_keyboard() -> types.InlineKeyboardMarkup:
             callback_data=MainMenuCallback(next_menu_prefix="profile").pack(),
         )
     )
+    return builder.as_markup()
+
+def select_admin_rights_keyboard(admin_options: dict, confirms: str = '') -> types.InlineKeyboardMarkup:
+    """
+    generate keyboard for selecting admin rights
+    """
+
+    builder = InlineKeyboardBuilder()
+    for key, right in admin_options.items():
+        key = str(key)
+        text = f"✅ {right}" if key in confirms else right
+        value = f"add_{key}" if key not in confirms else f"rm_{key}"
+        builder.row(
+            types.InlineKeyboardButton(
+                text=text, callback_data=AddAdminCallback(value=value, confirms=confirms).pack()
+            )
+        )
+    builder.row(
+        types.InlineKeyboardButton(
+            text=_("↩️ Назад"),
+            callback_data=ProfileMenuCallback(action="admin_menu").pack(),
+        )
+    )
+    if confirms:
+        builder.add(
+            types.InlineKeyboardButton(
+                text=_("Подтвердить"),
+                callback_data=AddAdminCallback(value="save", confirms=confirms).pack(),
+            )
+        )
     return builder.as_markup()

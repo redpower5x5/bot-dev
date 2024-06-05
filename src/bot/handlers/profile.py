@@ -35,6 +35,7 @@ from ..keyboards.profile import (
     ProfileAdminMenuCallback,
     MajorCallback,
     MentorStatusCallback,
+    AddAdminCallback,
     profile_menu_keyboard,
     mentor_status_keyboard,
     field_selector_menu,
@@ -43,6 +44,7 @@ from ..keyboards.profile import (
     PROFILE_EDITABLE_FIELD,
     AVALIABLE_PROFESSIONS,
     majors_keyboard,
+    select_admin_rights_keyboard,
 )
 from repositories.users.models import TelegramUser
 
@@ -63,6 +65,9 @@ class ProfileForm(StatesGroup):
     mentor_status = State()
     company = State()
 
+
+def has_admin_rights(tg_user: TelegramUser) -> bool:
+    return "profiles" in tg_user.admin_rights.right_model.values()
 
 # TODO: move to messages block
 def get_editing_text(tg_user: TelegramUser) -> str:
@@ -287,10 +292,11 @@ async def profile_save_data(
 @router.callback_query(ProfileMenuCallback.filter(F.action == "admin_menu"))
 async def profile_admin_menu(
     callback: types.CallbackQuery,
+    tg_user: TelegramUser,
 ) -> None:
     msg_text = _("Меню администратора")
     if callback.message:
-        await callback.message.edit_text(msg_text, reply_markup=admin_menu_keyboard())
+        await callback.message.edit_text(msg_text, reply_markup=admin_menu_keyboard(has_admin_rights(tg_user=tg_user)))
 
 
 @router.callback_query(ProfileAdminMenuCallback.filter())
@@ -315,7 +321,7 @@ async def process_admin_callback(
                     types.FSInputFile(filename, filename)
                 )
                 await callback.message.answer(
-                    msg_text, reply_markup=admin_menu_keyboard()
+                    msg_text, reply_markup=admin_menu_keyboard(has_admin_rights(tg_user=tg_user))
                 )
                 await callback.answer()
             else:
@@ -323,25 +329,83 @@ async def process_admin_callback(
                     msg_text,
                 )
         case "add_admin":
-            code = create_invite_code(tg_user.tg_id)
-            user_repo.create_invite_code(code, tg_user.tg_id)
-            msg_text = _(
-                "Ссылка для добавление администратора (действительна 30 минут): \n {url}"
-            ).format(url=get_admin_invite_link(settings.bot_name, code))
-            await bot.send_message(tg_user.tg_id, msg_text)
-            await callback.answer(text=msg_text)
-            msg_text = _("Меню администратора")
-
+            msg_text = _("Выберите права доступа")
+            admin_rights = tg_user.admin_rights.right_model
+            # preselct all current rights
+            preselect = ','.join(str(x) for x in admin_rights.keys())
             if callback.message:
-                await callback.message.answer(
-                    msg_text, reply_markup=admin_menu_keyboard()
+                await callback.message.edit_text(
+                    msg_text,
+                    reply_markup=select_admin_rights_keyboard(admin_options=admin_rights, confirms=preselect)
                 )
-            await callback.answer()
+                await callback.answer()
+            else:
+                await callback.answer(
+                    msg_text,
+                    reply_markup=select_admin_rights_keyboard(admin_options=admin_rights, confirms=preselect)
+                )
 
         case True:
             await callback.answer()
-    #
 
+
+            # code = create_invite_code(tg_user.tg_id)
+            # user_repo.create_invite_code(code, tg_user.tg_id)
+            # msg_text = _(
+            #     "Ссылка для добавление администратора (действительна 30 минут): \n {url}"
+            # ).format(url=get_admin_invite_link(settings.bot_name, code))
+            # await bot.send_message(tg_user.tg_id, msg_text)
+            # await callback.answer(text=msg_text)
+            # msg_text = _("Меню администратора")
+
+            # if callback.message:
+            #     await callback.message.answer(
+            #         msg_text, reply_markup=admin_menu_keyboard()
+            #     )
+            # await callback.answer()
+
+@router.callback_query(AddAdminCallback.filter())
+async def process_add_admin(
+    callback: types.CallbackQuery,
+    callback_data: AddAdminCallback,
+    tg_user: TelegramUser,
+    user_repo: UserRepositoryBase,
+    settings: Settings,
+    bot: Bot,
+) -> None:
+    confirms = callback_data.confirms.split(",") if callback_data.confirms else []
+    if len(callback_data.value.split('_')) > 1:
+        action, value = callback_data.value.split('_')
+        if action == "rm":
+            confirms.remove(value)
+        else:
+            confirms.append(value)
+        # update keyboard
+        confirms = ",".join(confirms)
+        await callback.message.edit_reply_markup(
+            inline_message_id=callback.inline_message_id,
+            reply_markup=select_admin_rights_keyboard(
+                admin_options=tg_user.admin_rights.right_model, confirms=confirms
+            )
+        )
+    else:
+        code = create_invite_code(tg_user.tg_id)
+        confirms = [int(x) for x in confirms]
+        user_repo.create_invite_code(code, tg_user.tg_id, confirms)
+        msg_text = _(
+            "Ссылка для добавление администратора (действительна 30 минут): \n {url}"
+        ).format(url=get_admin_invite_link(settings.bot_name, code))
+        # delete previous message
+        await bot.delete_message(callback.message.chat.id, callback.message.message_id)
+        await bot.send_message(tg_user.tg_id, msg_text)
+        await callback.answer(text=msg_text)
+        msg_text = _("Меню администратора")
+
+        if callback.message:
+            await callback.message.answer(
+                msg_text, reply_markup=admin_menu_keyboard(has_admin_rights(tg_user=tg_user))
+            )
+        await callback.answer()
 
 @router.message(Command("cancel"))
 @router.message(F.text.casefold() == __("cancel"))

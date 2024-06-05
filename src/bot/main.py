@@ -25,7 +25,7 @@ from .middlewares import (
 )
 
 
-from .handlers import common, coworking, profile, club, itam
+from .handlers import common, coworking, profile, club, itam, broadcast
 
 from repositories.coworking import CoworkingRepositoryPostgres
 from repositories.club import ClubRepositoryPostgres
@@ -37,6 +37,7 @@ dotenv.load_dotenv("../.env")
 
 async def main() -> None:
     settings = Settings()  # type: ignore
+    print(settings.build_postgres_dsn())
     pg_connection = psycopg2.connect(settings.build_postgres_dsn())
 
     scheduler = AsyncIOScheduler()
@@ -58,7 +59,7 @@ async def main() -> None:
     dp.update.middleware(CoworkingMiddleware(user_repo, coworking_repo))
     dp.update.middleware(ClubMiddleware(user_repo, club_repo))
     dp.update.middleware(SchedulerMiddleware(scheduler))
-    dp.include_routers(common.router, coworking.router, profile.router, club.router, itam.router)
+    dp.include_routers(common.router, coworking.router, profile.router, club.router, itam.router, broadcast.router)
 
     admins = user_repo.get_admins()
     try:

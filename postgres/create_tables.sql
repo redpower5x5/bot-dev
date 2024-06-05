@@ -46,8 +46,25 @@ create table if not exists clubs(
 create table if not exists admin_invite_codes(
     id serial primary key,
     code text,
+    rights_ids BIGINT [] not null,
     admin_id BIGINT not null REFERENCES telegram_users(id) on DELETE CASCADE,
     user_id BIGINT REFERENCES telegram_users(id) on DELETE CASCADE,
     created_at TIMESTAMP WITH TIME zone not null default CURRENT_TIMESTAMP,
     activated_at TIMESTAMP WITH TIME zone
+);
+create table if not exists admin_rights(
+    id serial primary key,
+    name text not null
+);
+create table if not exists admin_rights_users(
+    id serial primary key,
+    user_id BIGINT not null REFERENCES telegram_users(id) on DELETE CASCADE,
+    right_id BIGINT not null REFERENCES admin_rights(id) on DELETE CASCADE
+);
+create table if not exists clubs_additional_links(
+    id serial primary key,
+    club_id BIGINT not null REFERENCES clubs(id) on DELETE CASCADE,
+    link text not null,
+    button_name text not null,
+    created_at timestamp not null default NOW()
 );

@@ -6,6 +6,7 @@ from aiogram.filters import and_f
 from aiogram.utils.i18n import gettext as _
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.fsm.context import FSMContext
+from repositories.users.base import UserRepositoryBase
 
 from controllers.coworking import CoworkingController
 from repositories.coworking.models import CoworkingStatus, COWORKING_ACTIONS
@@ -47,6 +48,9 @@ class CoworkingStatusState(StatesGroup):
 class OverTimeDuration(Exception):
     pass
 
+def has_admin_rights(tg_user: TelegramUser) -> bool:
+    return "coworking" in tg_user.admin_rights.right_model.values()
+
 @router.callback_query(MainMenuCallback.filter(F.next_menu_prefix == "coworking"))
 async def coworking_menu(
     callback: types.CallbackQuery,
@@ -58,12 +62,12 @@ async def coworking_menu(
     if callback.message:
         await callback.message.edit_text(
             msg_text,
-            reply_markup=coworking_menu_keyboard(tg_user.is_admin, subscribed),
+            reply_markup=coworking_menu_keyboard(has_admin_rights(tg_user), subscribed),
         )
     else:
         await callback.answer(
             msg_text,
-            reply_markup=coworking_menu_keyboard(tg_user.is_admin, subscribed),
+            reply_markup=coworking_menu_keyboard(has_admin_rights(tg_user), subscribed),
         )
 
 
@@ -74,12 +78,12 @@ async def coworking_menu(
 #     if callback.message:
 #         await callback.message.edit_text(
 #             msg_text,
-#             reply_markup=coworking_menu_keyboard(tg_user.is_admin),
+#             reply_markup=coworking_menu_keyboard(has_admin_rights(tg_user)),
 #         )
 #     else:
 #         await callback.answer(
 #             msg_text,
-#             reply_markup=coworking_menu_keyboard(tg_user.is_admin),
+#             reply_markup=coworking_menu_keyboard(has_admin_rights(tg_user)),
 #         )
 
 
@@ -108,12 +112,12 @@ async def coworking_status(
     if callback.message:
         await callback.message.edit_text(
             msg_text,
-            reply_markup=coworking_menu_keyboard(tg_user.is_admin, subscribed, in_status=True),
+            reply_markup=coworking_menu_keyboard(has_admin_rights(tg_user), subscribed, in_status=True),
         )
     else:
         await callback.answer(
             msg_text,
-            reply_markup=coworking_menu_keyboard(tg_user.is_admin, subscribed, in_status=True),
+            reply_markup=coworking_menu_keyboard(has_admin_rights(tg_user), subscribed, in_status=True),
         )
 
 @router.callback_query(SubscriptionCallback.filter(F.subscribed == True))
@@ -128,13 +132,13 @@ async def coworking_unsubscribe(
     if callback.message:
         await callback.message.edit_text(
             msg_text,
-            reply_markup=coworking_menu_keyboard(tg_user.is_admin, False),
+            reply_markup=coworking_menu_keyboard(has_admin_rights(tg_user), False),
         )
         await callback.answer()
     else:
         await callback.answer(
             msg_text,
-            reply_markup=coworking_menu_keyboard(tg_user.is_admin, False),
+            reply_markup=coworking_menu_keyboard(has_admin_rights(tg_user), False),
         )
 
 
@@ -152,13 +156,13 @@ async def coworking_subscribe(
     if callback.message:
         await callback.message.edit_text(
             msg_text,
-            reply_markup=coworking_menu_keyboard(tg_user.is_admin, True),
+            reply_markup=coworking_menu_keyboard(has_admin_rights(tg_user), True),
         )
         await callback.answer()
     else:
         await callback.answer(
             msg_text,
-            reply_markup=coworking_menu_keyboard(tg_user.is_admin, True),
+            reply_markup=coworking_menu_keyboard(has_admin_rights(tg_user), True),
         )
 
 

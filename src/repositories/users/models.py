@@ -14,6 +14,17 @@ class UserProfile(BaseModel):
     mentor_status: bool | None = None
     company: str | None = None
 
+class AdminRights(BaseModel):
+    """Права админа
+
+    Attributes
+    ----------
+    rights_model: dict[int, str]
+
+    """
+
+    right_model: dict[int, str]
+
 
 class TelegramUser(BaseModel):
     """Пользователь телеграма
@@ -44,3 +55,4 @@ class TelegramUser(BaseModel):
     language_code: str
     is_admin: bool
     profile: UserProfile = UserProfile()
+    admin_rights: AdminRights = AdminRights(right_model={})

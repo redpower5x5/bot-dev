@@ -2,6 +2,7 @@ import typing as tp
 from aiogram import types
 
 from .menu import MainMenuCallback
+from .broadcast import BroadcastCallback
 from repositories.club.models import ClubInfo, ButtonLinks
 from aiogram.filters.callback_data import CallbackData
 from aiogram.utils.keyboard import InlineKeyboardBuilder
@@ -11,7 +12,7 @@ class SubscriptionCallback(CallbackData, prefix="club_subscription"):
     subscribed: bool
     club: str
 
-def club_subscription_and_info(subscribed: bool, club: str, club_link: str, additional_links: tp.List[ButtonLinks]) -> types.InlineKeyboardMarkup:
+def club_subscription_and_info(subscribed: bool, club: str, club_link: str, additional_links: tp.List[ButtonLinks], is_admin: bool) -> types.InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     if subscribed:
         builder.row(
@@ -38,6 +39,13 @@ def club_subscription_and_info(subscribed: bool, club: str, club_link: str, addi
             types.InlineKeyboardButton(
                 text=additional_link.button_text,
                 url=additional_link.link
+            )
+        )
+    if is_admin:
+        builder.row(
+            types.InlineKeyboardButton(
+                text=_("Рассылка для подписчиков 📢"),
+                callback_data=BroadcastCallback(action="menu", auditory=club).pack()
             )
         )
     builder.row(

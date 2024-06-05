@@ -21,6 +21,9 @@ from ..keyboards.clubs import club_subscription_and_info, SubscriptionCallback
 
 router: tp.Final[Router] = Router(name="clubs")
 
+def has_admin_rights(tg_user: TelegramUser, club: str) -> bool:
+    return club in tg_user.admin_rights.right_model.values()
+
 @router.callback_query(MainMenuCallback.filter(F.next_menu_prefix == "clubs"))
 async def clubs_menu(callback: types.CallbackQuery) -> None:
     msg_text = _("clubs menu text")
@@ -54,14 +57,16 @@ async def clubs_info(
         await callback.message.edit_text(
             msg_text,
             reply_markup=club_subscription_and_info(
-                 subscribed, club, club_info.link, club_info.additional_links
+                 subscribed, club, club_info.link, club_info.additional_links,
+                 has_admin_rights(tg_user, club)
             ),
         )
     else:
         await callback.answer(
             msg_text,
             reply_markup=club_subscription_and_info(
-                 subscribed, club, club_info.link, club_info.additional_links
+                 subscribed, club, club_info.link, club_info.additional_links,
+                 has_admin_rights(tg_user, club)
             ),
         )
 
@@ -84,13 +89,15 @@ async def club_subscription(
         await callback.message.edit_text(
             msg_text,
             reply_markup=club_subscription_and_info(
-                 subscribed, club, club_info.link, club_info.additional_links
+                 subscribed, club, club_info.link, club_info.additional_links,
+                 has_admin_rights(tg_user, club)
             ),
         )
     else:
         await callback.answer(
             msg_text,
             reply_markup=club_subscription_and_info(
-                 subscribed, club, club_info.link, club_info.additional_links
+                 subscribed, club, club_info.link, club_info.additional_links,
+                 has_admin_rights(tg_user, club)
             ),
         )
