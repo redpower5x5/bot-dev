@@ -37,7 +37,9 @@ services:
       environment:
         - "POSTGRES_HOST=localhost"
         - "POSTGRES_PORT=5322"
+        - "BOT_TOKEN="
         - "TZ=Europe/Moscow"
       volumes:
         - .:/app
       command: python3 src/main.py
+      network_mode: "host"
