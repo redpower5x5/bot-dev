@@ -31,7 +31,7 @@ dev-db:
 
 .PHONY: dev-build
 dev-build:
-	docker compose -f docker/docker-compose-dev.yaml up -d --build
+	docker compose -f docker/docker-compose-dev.yaml up -d --build bot
 
 .PHONY: dev-logs
 dev-logs:
