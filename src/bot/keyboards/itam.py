@@ -19,12 +19,12 @@ class ITAMMenuCallback(CallbackData, prefix="itam"):
 
 def itam_menu(in_contacts: bool = False, is_admin: bool = False) -> types.InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
-    builder.row(
-        types.InlineKeyboardButton(
-            text=_("📰 Дайджест"),
-            callback_data=DigestMenuCallback(action="view").pack(),
-        ),
-    )
+    # builder.row(
+    #     types.InlineKeyboardButton(
+    #         text=_("📰 Дайджест"),
+    #         callback_data=DigestMenuCallback(action="view").pack(),
+    #     ),
+    # )
     builder.row(
         types.InlineKeyboardButton(
             text=_("🚀 Наши возможности"),
