@@ -352,6 +352,7 @@ class UserRepositoryPostgres(UserRepositoryBase):
                 code,
             ),
         )
+        self.conn.commit()
         cur.execute(
             """
                 update telegram_users set is_admin = true where id = %s;
@@ -374,6 +375,7 @@ class UserRepositoryPostgres(UserRepositoryBase):
         result = cur.fetchone()
         cur.close()
         if result:
+            print("NO ADMIN")
             return result[0]
         # TODO: решить, что может пойти не так
         return -1
