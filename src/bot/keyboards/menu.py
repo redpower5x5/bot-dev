@@ -3,6 +3,7 @@ import typing as tp
 from aiogram import types
 
 from aiogram.filters.callback_data import CallbackData
+from .broadcast import BroadcastCallback
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 from aiogram.utils.i18n import gettext as _
 
@@ -105,6 +106,12 @@ def coworking_menu_keyboard(is_admin: bool, subscribed: bool, in_status: bool = 
         )
     )
     if is_admin:
+        builder.row(
+            types.InlineKeyboardButton(
+                text=_("📢 Рассылка всем пользователям"),
+                callback_data=BroadcastCallback(action="menu", auditory="coworking").pack(),
+            ),
+        )
         builder.row(
             types.InlineKeyboardButton(
                 text=_("🔧 Меню администратора"),
