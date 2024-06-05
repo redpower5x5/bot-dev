@@ -31,7 +31,7 @@ def coworking_admin_keyboard(
     builder = InlineKeyboardBuilder()
     builder.row(
             types.InlineKeyboardButton(
-                text=_("📢 Рассылка всем пользователям"),
+                text=_("Рассылка для подписчиков 📢"),
                 callback_data=BroadcastCallback(action="menu", auditory="coworking").pack(),
             ),
         )
