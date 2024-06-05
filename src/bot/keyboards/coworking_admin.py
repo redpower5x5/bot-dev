@@ -5,7 +5,7 @@ from aiogram.filters.callback_data import CallbackData
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.utils.i18n import gettext as _
 from bot.keyboards.menu import MainMenuCallback, CoworkingMenuCallback
-
+from .broadcast import BroadcastCallback
 from repositories.coworking.models import CoworkingStatus, COWORKING_ACTIONS
 
 
@@ -29,7 +29,12 @@ def coworking_admin_keyboard(
     coworking_data: CoworkingStatusCallback,
 ) -> types.InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
-
+    builder.row(
+            types.InlineKeyboardButton(
+                text=_("📢 Рассылка всем пользователям"),
+                callback_data=BroadcastCallback(action="menu", auditory="coworking").pack(),
+            ),
+        )
     match coworking_data.action:
         case None:
             builder.button(
