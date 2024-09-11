@@ -141,6 +141,10 @@ def clubs_menu_keyboard() -> types.InlineKeyboardMarkup:
             text=_("🤖 Клуб робототехники"),
             callback_data=ClubsMenuCallback(club="robot_club").pack(),
         ),
+        types.InlineKeyboardButton(
+            text=_("🏆 Клуб ACM MISIS"),
+            callback_data=ClubsMenuCallback(club="acm_club").pack(),
+        ),
     )
     builder.row(
         types.InlineKeyboardButton(
