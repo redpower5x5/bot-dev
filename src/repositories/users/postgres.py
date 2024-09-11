@@ -258,7 +258,7 @@ class UserRepositoryPostgres(UserRepositoryBase):
                         timestamp
                     ) values (%s, %s, %s, %s, %s, %s, %s);
                 """,
-                (tg_id, first_name, last_name, username, is_premium, language_code, datetime.now(timezone(timedelta(hours=3), 'utc+3'))),
+                (tg_id, first_name, last_name, username, is_premium, language_code, datetime.now()),
             )
             cur.execute(
                 """
