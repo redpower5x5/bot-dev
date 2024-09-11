@@ -12,7 +12,7 @@ COWORKING_ACTIONS = tp.Literal[
 
 AVALIABLE_MENUS = tp.Literal["menu", "coworking", "profile", "help", "clubs", "ITAM"]
 
-AVALIABLE_CLUBS = tp.Literal["hack_club", "design_club", "gamedev_club", "ai_club", "robot_club"]
+AVALIABLE_CLUBS = tp.Literal["hack_club", "design_club", "gamedev_club", "ai_club", "robot_club", "acm_club"]
 
 
 class MainMenuCallback(CallbackData, prefix="menu"):
