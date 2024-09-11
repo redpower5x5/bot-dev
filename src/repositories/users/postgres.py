@@ -1,6 +1,6 @@
 import psycopg2
 import typing as tp
-import datetime as dt
+from datetime import datetime, timezone, timedelta
 
 import psycopg2.sql
 from .base import UserRepositoryBase
@@ -254,10 +254,11 @@ class UserRepositoryPostgres(UserRepositoryBase):
                         last_name,
                         username,
                         is_premium,
-                        language_code
-                    ) values (%s, %s, %s, %s, %s, %s);
+                        language_code,
+                        timestamp
+                    ) values (%s, %s, %s, %s, %s, %s, %s);
                 """,
-                (tg_id, first_name, last_name, username, is_premium, language_code),
+                (tg_id, first_name, last_name, username, is_premium, language_code, datetime.now(timezone(timedelta(hours=3), 'utc+3'))),
             )
             cur.execute(
                 """
