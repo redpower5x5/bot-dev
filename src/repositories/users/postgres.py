@@ -282,6 +282,7 @@ class UserRepositoryPostgres(UserRepositoryBase):
                 language_code,
                 is_admin,
                 fio,
+                timestamp,
                 email,
                 educational_group,
                 portfolio_link,
@@ -290,7 +291,6 @@ class UserRepositoryPostgres(UserRepositoryBase):
                 skills,
                 mentor_status,
                 company,
-                timestamp,
             ) in result
         ]
 
