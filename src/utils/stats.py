@@ -25,7 +25,7 @@ async def users_table(admin_id: int, users: list[TelegramUser]):
         "company",
     ]
 
-    async with aiofiles.open(filename, "w") as file:
+    async with aiofiles.open(filename, "w", encoding="UTF-8") as file:
         writer = csv.DictWriter(
             file,
             fieldnames,
