@@ -234,7 +234,7 @@ class UserRepositoryPostgres(UserRepositoryBase):
                     tg.is_premium,
                     tg.language_code,
                     tg.is_admin,
-                    tg.timestamp
+                    tg.timestamp,
                     pr.fio,
                     pr.email,
                     pr.educational_group,
