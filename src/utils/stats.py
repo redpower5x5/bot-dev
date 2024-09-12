@@ -7,6 +7,7 @@ from repositories.users.models import TelegramUser
 async def users_table(admin_id: int, users: list[TelegramUser]):
     filename = f"{admin_id}_{dt.datetime.now().isoformat()}.csv"
     fieldnames = [
+        "timestamp",
         "tg_id",
         "first_name",
         "last_name",
@@ -34,5 +35,7 @@ async def users_table(admin_id: int, users: list[TelegramUser]):
             data = u.model_dump()
             data.update(data.pop("profile"))
             data.pop("is_admin")
+            data.pop("admin_rights")
+            data
             await writer.writerow(data)
     return filename

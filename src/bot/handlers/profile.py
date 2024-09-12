@@ -65,6 +65,9 @@ class ProfileForm(StatesGroup):
     mentor_status = State()
     company = State()
 
+class ProfileAdminForm(StatesGroup):
+    timestamp = State()
+
 
 def has_admin_rights(tg_user: TelegramUser) -> bool:
     return "profiles" in tg_user.admin_rights.right_model.values()
@@ -304,6 +307,7 @@ async def process_admin_callback(
     callback: types.CallbackQuery,
     callback_data: ProfileAdminMenuCallback,
     tg_user: TelegramUser,
+    state: FSMContext,
     user_repo: UserRepositoryBase,
     settings: Settings,
     bot: Bot,
@@ -311,23 +315,32 @@ async def process_admin_callback(
     # TODO: split by cases into different handlers
     match callback_data.action:
         case "export":
-            msg_text = _("Меню администратора")
-            filename = await users_table(
-                tg_user.tg_id, user_repo.get_users(limit=10**5)
-            )
-
+            msg_text = _("Введите время среза базы данных в формате yyyy-mm-dd HH:MM:SS (Пример: 2001-09-11 12:00:00")
+            await state.set_state(ProfileAdminForm.timestamp)
             if callback.message:
-                await callback.message.answer_document(
-                    types.FSInputFile(filename, filename)
+                await callback.message.edit_text(
+                    msg_text,
                 )
-                await callback.message.answer(
-                    msg_text, reply_markup=admin_menu_keyboard(has_admin_rights(tg_user=tg_user))
-                )
-                await callback.answer()
             else:
                 await callback.answer(
                     msg_text,
                 )
+            # filename = await users_table(
+            #     tg_user.tg_id, user_repo.get_users(limit=10**5)
+            # )
+
+            # if callback.message:
+            #     await callback.message.answer_document(
+            #         types.FSInputFile(filename, filename)
+            #     )
+            #     await callback.message.answer(
+            #         msg_text, reply_markup=admin_menu_keyboard(has_admin_rights(tg_user=tg_user))
+            #     )
+            #     await callback.answer()
+            # else:
+            #     await callback.answer(
+            #         msg_text,
+            #     )
         case "add_admin":
             msg_text = _("Выберите права доступа")
             admin_rights = tg_user.admin_rights.right_model
@@ -363,6 +376,39 @@ async def process_admin_callback(
             #         msg_text, reply_markup=admin_menu_keyboard()
             #     )
             # await callback.answer()
+
+@router.message(ProfileAdminForm.timestamp)
+async def process_admin_profile_export(
+    message: types.Message,
+    tg_user: TelegramUser,
+    state: FSMContext,
+    user_repo: UserRepositoryBase,
+    settings: Settings,
+    bot: Bot,
+) -> None:
+    # get text from message
+    await state.clear()
+    date_text = message.text
+    # parse datetime
+    try:
+        timestamp = dt.datetime.strptime(date_text, "%Y-%m-%d %H:%M:%S")
+    except ValueError as e:
+        await message.answer(_("Неверный формат даты"))
+        return
+    await message.answer(_("Пожалуйста подождите..."))
+    # get users
+    users = await user_repo.get_users_after_timestamp(timestamp)
+    filename = await users_table(
+                tg_user.tg_id, users
+            )
+    msg_text = _("Меню администратора")
+    # send file to user
+    await message.answer_document(
+        types.FSInputFile(filename, filename)
+    )
+    await message.answer(
+        msg_text, reply_markup=admin_menu_keyboard(has_admin_rights(tg_user=tg_user))
+    )
 
 @router.callback_query(AddAdminCallback.filter())
 async def process_add_admin(

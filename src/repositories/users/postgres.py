@@ -222,6 +222,78 @@ class UserRepositoryPostgres(UserRepositoryBase):
             ) in result
         ]
 
+    def get_users_after_timestamp(self, timestamp_bound: datetime) -> list[TelegramUser]:
+        cur = self.conn.cursor()
+        cur.execute(
+            """
+                select
+                    tg.id,
+                    tg.first_name,
+                    tg.last_name,
+                    tg.username,
+                    tg.is_premium,
+                    tg.language_code,
+                    tg.is_admin,
+                    tg.timestamp
+                    pr.fio,
+                    pr.email,
+                    pr.educational_group,
+                    pr.portfolio_link,
+                    pr.majors,
+                    pr.external_links,
+                    pr.skills,
+                    pr.mentor,
+                    pr.company
+                from telegram_users as tg
+                left join profiles as pr on tg.id = pr.user_id
+                where tg.timestamp > %s;
+            """, (timestamp_bound,),
+        )
+        result = cur.fetchall()
+        cur.close()
+        return [
+            TelegramUser(
+                tg_id=tg_id,
+                first_name=first_name,
+                last_name=last_name,
+                username=username,
+                is_premium=is_premium,
+                language_code=language_code,
+                is_admin=is_admin if is_admin else False,
+                timestamp=timestamp,
+                profile=UserProfile(
+                    fio=fio,
+                    email=email,
+                    educational_group=educational_group,
+                    portfolio_link=portfolio_link,
+                    majors=majors,
+                    external_links=external_links,
+                    skills=skills,
+                    mentor_status=mentor_status,
+                    company=company,
+                ),
+            )
+            for (
+                tg_id,
+                first_name,
+                last_name,
+                username,
+                is_premium,
+                language_code,
+                is_admin,
+                fio,
+                email,
+                educational_group,
+                portfolio_link,
+                majors,
+                external_links,
+                skills,
+                mentor_status,
+                company,
+                timestamp,
+            ) in result
+        ]
+
     def save_user(
         self,
         tg_id: int,

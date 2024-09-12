@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from .models import TelegramUser, AdminRights
+from datetime import datetime
 
 
 class UserRepositoryBase(ABC):
@@ -34,6 +35,11 @@ class UserRepositoryBase(ABC):
     @abstractmethod
     def get_users(self, limit: int = 10, offset: int = 0) -> list[TelegramUser]:
         """Получения информации пользователей для сбора статистики"""
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_users_after_timestamp(self, timestamp_bound: datetime) -> list[TelegramUser]:
+        """Получение пользователей, которые были зарегестрированы после опредленной даты/времени"""
         raise NotImplementedError
 
     @abstractmethod

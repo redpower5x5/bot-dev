@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from pydantic import BaseModel
 import typing as tp
+from datetime import datetime
 
 
 class UserProfile(BaseModel):
@@ -55,4 +56,5 @@ class TelegramUser(BaseModel):
     language_code: str
     is_admin: bool
     profile: UserProfile = UserProfile()
+    timestamp: datetime | None = None
     admin_rights: AdminRights = AdminRights(right_model={})
