@@ -397,7 +397,7 @@ async def process_admin_profile_export(
         return
     await message.answer(_("Пожалуйста подождите..."))
     # get users
-    users = await user_repo.get_users_after_timestamp(timestamp)
+    users = user_repo.get_users_after_timestamp(timestamp)
     filename = await users_table(
                 tg_user.tg_id, users
             )
